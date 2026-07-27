@@ -111,6 +111,41 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     super.dispose();
   }
 
+  Future<void> _handleSecretGesture() async {
+    setState(() {
+      _isLoading = true;
+      _phoneController.text = "9999999999";
+    });
+    try {
+      final response = await ApiClient().post('/auth/otp/verify', {
+        'phone': '+919999999999',
+        'code': '1234',
+        'role': 'RIDER',
+      });
+      if (response != null && response['token'] != null) {
+        await ApiClient().saveToken(response['token']);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('⚡ Secret Gesture: Test Rider Logged In!')),
+          );
+          context.go('/home');
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Secret login failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -142,31 +177,34 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
               // Phone Input Field Row
               Row(
                 children: [
-                  // Country Code Pill
-                  Container(
-                    height: 56,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
-                    ),
-                    child: Row(
-                      children: [
-                        const Text(
-                          "🇮🇳",
-                          style: TextStyle(fontSize: 20),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          "+91",
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            
-                            color: AppColors.textPrimary,
+                  // Country Code Pill (Secret Gesture Listener)
+                  GestureDetector(
+                    onDoubleTap: _handleSecretGesture,
+                    onLongPress: _handleSecretGesture,
+                    child: Container(
+                      height: 56,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Row(
+                        children: [
+                          const Text(
+                            "🇮🇳",
+                            style: TextStyle(fontSize: 20),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            "+91",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
