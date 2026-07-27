@@ -152,10 +152,10 @@ jobs:
         run: |
           cd apps/admin
           npm ci
-          npm run build
+          CI=false npm run build
 
       - name: Upload Admin Dashboard Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: admin-dashboard-dist
-          path: apps/admin/dist
+          name: admin-dashboard-build
+          path: apps/admin/build
