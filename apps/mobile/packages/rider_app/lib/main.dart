@@ -38,7 +38,7 @@ class MrRideoRiderApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'Mr. Rideo Rider',
+      title: 'Mr. Rideo',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.lightTheme,
