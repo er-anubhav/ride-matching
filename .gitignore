@@ -1,0 +1,24 @@
+# Secrets & Credentials
+.env
+.env.production
+.env*.local
+
+# Node & Package Managers
+node_modules/
+dist/
+npm-debug.log*
+
+# Flutter & Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+*.apk
+*.aab
+
+# OS & IDE
+.DS_Store
+.idea/
+*.swp
