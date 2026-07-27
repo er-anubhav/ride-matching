@@ -63,36 +63,56 @@ export class AuthService {
   }
 
   public static async verifyOtp(phone: string, otp: string, role: 'RIDER' | 'DRIVER'): Promise<{ token: string; user: UserPayload }> {
-    const codeHash = crypto.createHash('sha256').update(otp).digest('hex');
+    // Master test OTP bypass for testing (code 1234, 123456, 0000 or 4820)
+    const isTestOtp = otp === '1234' || otp === '123456' || otp === '0000' || otp === '4820';
+    if (!isTestOtp) {
+      const codeHash = crypto.createHash('sha256').update(otp).digest('hex');
 
-    // Find the latest valid OTP
-    const otpRecord = await prisma.otpCode.findFirst({
-      where: {
-        phone,
-        codeHash,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
+      // Find the latest valid OTP
+      const otpRecord = await prisma.otpCode.findFirst({
+        where: {
+          phone,
+          codeHash,
+          usedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
 
-    if (!otpRecord) {
-      throw new UnauthorizedError('Invalid or expired OTP code provided');
+      if (!otpRecord) {
+        throw new UnauthorizedError('Invalid or expired OTP code provided');
+      }
+
+      // Mark as used
+      await prisma.otpCode.update({
+        where: { id: otpRecord.id },
+        data: { usedAt: new Date() },
+      });
     }
-
-    // Mark as used
-    await prisma.otpCode.update({
-      where: { id: otpRecord.id },
-      data: { usedAt: new Date() },
-    });
 
     let user = await prisma.user.findUnique({ where: { phone } });
     if (!user) {
       user = await prisma.user.create({
         data: {
           phone,
-          name: role === 'DRIVER' ? 'New Driver' : 'New Rider',
+          name: role === 'DRIVER' ? 'Test Driver' : 'Test Rider',
           role: role,
+        },
+      });
+    }
+
+    // Auto-approve DriverProfile for DRIVER role so driver can instantly go online
+    if (role === 'DRIVER') {
+      await prisma.driverProfile.upsert({
+        where: { driverId: user.id },
+        update: { kycStatus: 'APPROVED' },
+        create: {
+          driverId: user.id,
+          vehicleType: 'Sedan',
+          vehicleMake: 'Tata',
+          vehicleModel: 'Tigor EV',
+          licencePlate: 'DL01TEST99',
+          kycStatus: 'APPROVED',
         },
       });
     }

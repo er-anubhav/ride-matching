@@ -224,6 +224,56 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
                       }
                     : () {},
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    side: BorderSide(color: AppColors.primary, width: 1.5),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  icon: const Icon(LucideIcons.zap, color: Colors.amber, size: 20),
+                  label: Text(
+                    "⚡ Bypass Login (Test Rider Profile)",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  onPressed: () async {
+                    setState(() {
+                      _isLoading = true;
+                    });
+                    try {
+                      final response = await ApiClient().post('/auth/otp/verify', {
+                        'phone': '+919999999999',
+                        'code': '1234',
+                        'role': 'RIDER',
+                      });
+                      if (response != null && response['token'] != null) {
+                        await ApiClient().saveToken(response['token']);
+                        if (mounted) {
+                          context.go('/home');
+                        }
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Bypass login failed: $e')),
+                        );
+                      }
+                    } finally {
+                      if (mounted) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
+                  },
+                ),
+              ),
               const SizedBox(height: 16),
               SecondaryButton(
                 text: "Continue with Google",
