@@ -1,4 +1,4 @@
-name: Unified Monorepo CI/CD
+name: Smart Monorepo CI/CD
 
 on:
   push:
@@ -6,8 +6,37 @@ on:
   workflow_dispatch:
 
 jobs:
+  # 1. Detect which components were modified in the commit
+  changes:
+    name: Detect Changed Components
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      admin: ${{ steps.filter.outputs.admin }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Check Paths
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'docker-compose.yml'
+              - '.env.production'
+            mobile:
+              - 'apps/mobile/**'
+            admin:
+              - 'apps/admin/**'
+
+  # 2. Deploy Backend ONLY if backend files changed
   backend-deploy:
     name: Build & Deploy Backend
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -46,8 +75,11 @@ jobs:
             docker exec -t mrrideo-backend npx prisma db push
             curl -f http://localhost:8080/health || exit 1
 
+  # 3. Build Mobile Apps ONLY if mobile app files changed
   mobile-apps-build:
     name: Analyze & Build Mobile Apps
+    needs: changes
+    if: ${{ needs.changes.outputs.mobile == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -101,8 +133,11 @@ jobs:
           name: driver-app-release
           path: apps/mobile/packages/driver_app/build/app/outputs/flutter-apk/app-release.apk
 
+  # 4. Build Admin Dashboard ONLY if admin files changed
   admin-dashboard-build:
     name: Build Admin Dashboard
+    needs: changes
+    if: ${{ needs.changes.outputs.admin == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
