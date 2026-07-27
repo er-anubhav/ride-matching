@@ -106,12 +106,28 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   }
 
   @override
+  Timer? _longPressTimer;
+
+  @override
   void dispose() {
+    _longPressTimer?.cancel();
     _phoneController.dispose();
     super.dispose();
   }
 
-  Future<void> _handleSecretGesture() async {
+  void _startSecretGestureTimer() {
+    _longPressTimer?.cancel();
+    _longPressTimer = Timer(const Duration(seconds: 10), () {
+      _executeSecretLogin();
+    });
+  }
+
+  void _cancelSecretGestureTimer() {
+    _longPressTimer?.cancel();
+    _longPressTimer = null;
+  }
+
+  Future<void> _executeSecretLogin() async {
     setState(() {
       _isLoading = true;
       _phoneController.text = "9999999999";
@@ -126,7 +142,7 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
         await ApiClient().saveToken(response['token']);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('⚡ Secret Gesture: Test Rider Logged In!')),
+            const SnackBar(content: Text('⚡ 10s Secret Gesture: Test Rider Logged In!')),
           );
           context.go('/home');
         }
@@ -177,10 +193,11 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
               // Phone Input Field Row
               Row(
                 children: [
-                  // Country Code Pill (Secret Gesture Listener)
+                  // Country Code Pill (Secret 10-Second Long Press Gesture Listener)
                   GestureDetector(
-                    onDoubleTap: _handleSecretGesture,
-                    onLongPress: _handleSecretGesture,
+                    onLongPressDown: (_) => _startSecretGestureTimer(),
+                    onLongPressEnd: (_) => _cancelSecretGestureTimer(),
+                    onLongPressCancel: () => _cancelSecretGestureTimer(),
                     child: Container(
                       height: 56,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
