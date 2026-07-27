@@ -1,0 +1,369 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  schemas  = ["auth", "trip", "payment", "pricing", "kyc"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+// ============================================================
+// AUTH SCHEMA
+// ============================================================
+
+model User {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String   @unique @db.VarChar(15)
+  name      String?  @db.VarChar(100)
+  email     String?  @db.VarChar(255)
+  role      String   @default("RIDER") @db.VarChar(20) // RIDER | DRIVER | ADMIN
+  status    String   @default("ACTIVE") @db.VarChar(20) // ACTIVE | SUSPENDED | DELETED
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  // Inverse relations
+  sessions      Session[]
+  riderTrips    Trip[]         @relation("RiderTrips")
+  driverTrips   Trip[]         @relation("DriverTrips")
+  tripEvents    TripEvent[]
+  riderRatings  Rating[]       @relation("RiderRatings")
+  driverRatings Rating[]       @relation("DriverRatings")
+  payments      Payment[]
+  wallet        Wallet?
+  payouts       Payout[]
+  driverProfile DriverProfile?
+  documents     Document[]
+  devices       UserDevice[]
+
+  @@map("users")
+  @@schema("auth")
+}
+
+model UserDevice {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  deviceId   String   @map("device_id") @db.VarChar(255)
+  platform   String?  @db.VarChar(50)
+  fcmToken   String   @map("fcm_token") @db.VarChar(255)
+  appVersion String?  @map("app_version") @db.VarChar(50)
+  lastSeenAt DateTime @default(now()) @map("last_seen_at")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, deviceId])
+  @@index([userId, isActive])
+  @@map("user_devices")
+  @@schema("auth")
+}
+
+model Session {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  refreshTokenHash String   @unique @map("refresh_token_hash") @db.VarChar(64)
+  deviceId         String?  @map("device_id") @db.VarChar(255)
+  userAgent        String?  @map("user_agent") @db.Text
+  expiresAt        DateTime @map("expires_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@map("sessions")
+  @@schema("auth")
+}
+
+model OtpCode {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone     String    @db.VarChar(15)
+  codeHash  String    @map("code_hash") @db.VarChar(64)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([phone, expiresAt])
+  @@map("otp_codes")
+  @@schema("auth")
+}
+
+// ============================================================
+// TRIP SCHEMA
+// ============================================================
+
+model Trip {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  riderId            String    @map("rider_id") @db.Uuid
+  driverId           String?   @map("driver_id") @db.Uuid
+  cityId             String    @map("city_id") @db.VarChar(50)
+  vehicleType        String    @map("vehicle_type") @db.VarChar(20)
+  status             String    @default("REQUESTED") @db.VarChar(30)
+  pickupLat          Decimal   @map("pickup_lat") @db.Decimal(10, 7)
+  pickupLng          Decimal   @map("pickup_lng") @db.Decimal(10, 7)
+  pickupAddress      String?   @map("pickup_address") @db.Text
+  dropoffLat         Decimal   @map("dropoff_lat") @db.Decimal(10, 7)
+  dropoffLng         Decimal   @map("dropoff_lng") @db.Decimal(10, 7)
+  dropoffAddress     String?   @map("dropoff_address") @db.Text
+  estimatedFare      Decimal?  @map("estimated_fare") @db.Decimal(10, 2)
+  finalFare          Decimal?  @map("final_fare") @db.Decimal(10, 2)
+  distanceKm         Decimal?  @map("distance_km") @db.Decimal(8, 3)
+  durationMinutes    Int?      @map("duration_minutes")
+  riderOtp           String?   @map("rider_otp") @db.VarChar(4)
+  surgeMultiplier    Decimal   @default(1.00) @map("surge_multiplier") @db.Decimal(4, 2)
+  promoCode          String?   @map("promo_code") @db.VarChar(30)
+  promoDiscount      Decimal?  @map("promo_discount") @db.Decimal(10, 2)
+  cancelledBy        String?   @map("cancelled_by") @db.Uuid
+  cancellationReason String?   @map("cancellation_reason") @db.VarChar(100)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @default(now()) @updatedAt @map("updated_at")
+  startedAt          DateTime? @map("started_at")
+  completedAt        DateTime? @map("completed_at")
+
+  rider  User  @relation("RiderTrips", fields: [riderId], references: [id], onDelete: Restrict)
+  driver User? @relation("DriverTrips", fields: [driverId], references: [id], onDelete: Restrict)
+
+  tripEvents TripEvent[]
+  gpsTracks  GpsTrack[]
+  rating     Rating?
+  payment    Payment?
+
+  @@index([riderId, createdAt(sort: Desc)])
+  @@index([driverId, status])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("trips")
+  @@schema("trip")
+}
+
+model TripEvent {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId     String   @map("trip_id") @db.Uuid
+  eventType  String   @map("event_type") @db.VarChar(50)
+  actorId    String?  @map("actor_id") @db.Uuid
+  payload    Json?
+  occurredAt DateTime @default(now()) @map("occurred_at")
+
+  trip  Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  actor User? @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([tripId, occurredAt])
+  @@map("trip_events")
+  @@schema("trip")
+}
+
+model GpsTrack {
+  tripId     String   @map("trip_id") @db.Uuid
+  lat        Decimal  @db.Decimal(10, 7)
+  lng        Decimal  @db.Decimal(10, 7)
+  heading    Int?     @db.SmallInt
+  speedKmh   Decimal? @map("speed_kmh") @db.Decimal(6, 2)
+  recordedAt DateTime @map("recorded_at")
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  @@id([tripId, recordedAt])
+  @@index([tripId, recordedAt(sort: Desc)])
+  @@map("gps_tracks")
+  @@schema("trip")
+}
+
+model Rating {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId        String   @unique @map("trip_id") @db.Uuid
+  riderId       String   @map("rider_id") @db.Uuid
+  driverId      String   @map("driver_id") @db.Uuid
+  riderRating   Int?     @map("rider_rating") @db.SmallInt
+  driverRating  Int?     @map("driver_rating") @db.SmallInt
+  riderComment  String?  @map("rider_comment") @db.Text
+  driverComment String?  @map("driver_comment") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  trip   Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  rider  User @relation("RiderRatings", fields: [riderId], references: [id], onDelete: Restrict)
+  driver User @relation("DriverRatings", fields: [driverId], references: [id], onDelete: Restrict)
+
+  @@map("ratings")
+  @@schema("trip")
+}
+
+// ============================================================
+// PAYMENT SCHEMA
+// ============================================================
+
+model Payment {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tripId           String    @unique @map("trip_id") @db.Uuid
+  riderId          String    @map("rider_id") @db.Uuid
+  amount           Decimal   @db.Decimal(10, 2)
+  currency         String    @default("INR") @db.VarChar(3)
+  method           String    @db.VarChar(30)
+  status           String    @default("PENDING") @db.VarChar(30)
+  gateway          String?   @db.VarChar(20)
+  gatewayPaymentId String?   @map("gateway_payment_id") @db.VarChar(100)
+  gatewayOrderId   String?   @map("gateway_order_id") @db.VarChar(100)
+  failureReason    String?   @map("failure_reason") @db.Text
+  collectedBy      String?   @map("collected_by") @db.VarChar(20)
+  collectedAt      DateTime? @map("collected_at")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at")
+  settledAt        DateTime? @map("settled_at")
+
+  trip  Trip @relation(fields: [tripId], references: [id], onDelete: Restrict)
+  rider User @relation(fields: [riderId], references: [id], onDelete: Restrict)
+
+  @@index([riderId, createdAt(sort: Desc)])
+  @@index([status, createdAt])
+  @@map("payments")
+  @@schema("payment")
+}
+
+model Wallet {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @unique @map("user_id") @db.Uuid
+  balance   Decimal  @default(0.00) @db.Decimal(10, 2)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user         User                @relation(fields: [userId], references: [id], onDelete: Restrict)
+  transactions WalletTransaction[]
+
+  @@map("wallets")
+  @@schema("payment")
+}
+
+model WalletTransaction {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  walletId     String   @map("wallet_id") @db.Uuid
+  type         String   @db.VarChar(20)
+  amount       Decimal  @db.Decimal(10, 2)
+  balanceAfter Decimal  @map("balance_after") @db.Decimal(10, 2)
+  description  String?  @db.Text
+  referenceId  String?  @map("reference_id") @db.Uuid
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId, createdAt(sort: Desc)])
+  @@map("wallet_transactions")
+  @@schema("payment")
+}
+
+model Payout {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverId    String    @map("driver_id") @db.Uuid
+  grossAmount Decimal   @map("gross_amount") @db.Decimal(10, 2)
+  commission  Decimal   @db.Decimal(10, 2)
+  netAmount   Decimal   @map("net_amount") @db.Decimal(10, 2)
+  periodStart DateTime  @map("period_start") @db.Date
+  periodEnd   DateTime  @map("period_end") @db.Date
+  status      String    @default("PENDING") @db.VarChar(20)
+  utr         String?   @db.VarChar(50)
+  upiId       String?   @map("upi_id") @db.VarChar(100)
+  initiatedAt DateTime? @map("initiated_at")
+  settledAt   DateTime? @map("settled_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  driver User @relation(fields: [driverId], references: [id], onDelete: Restrict)
+
+  @@index([driverId, periodStart(sort: Desc)])
+  @@map("payouts")
+  @@schema("payment")
+}
+
+// ============================================================
+// PRICING SCHEMA
+// ============================================================
+
+model CityConfig {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cityId        String   @map("city_id") @db.VarChar(50)
+  vehicleType   String   @map("vehicle_type") @db.VarChar(20)
+  baseFare      Decimal  @map("base_fare") @db.Decimal(8, 2)
+  perKmRate     Decimal  @map("per_km_rate") @db.Decimal(8, 2)
+  perMinRate    Decimal  @map("per_min_rate") @db.Decimal(8, 2)
+  minimumFare   Decimal  @map("minimum_fare") @db.Decimal(8, 2)
+  commissionPct Decimal  @default(20.00) @map("commission_pct") @db.Decimal(5, 2)
+  isActive      Boolean  @default(true) @map("is_active")
+  effectiveFrom DateTime @default(now()) @map("effective_from")
+
+  @@unique([cityId, vehicleType, effectiveFrom])
+  @@map("city_configs")
+  @@schema("pricing")
+}
+
+model SurgeEvent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cityId      String    @map("city_id") @db.VarChar(50)
+  h3Cell      String    @map("h3_cell") @db.VarChar(20)
+  multiplier  Decimal   @db.Decimal(4, 2)
+  demandRatio Decimal?  @map("demand_ratio") @db.Decimal(6, 2)
+  startedAt   DateTime  @default(now()) @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+
+  @@index([cityId, h3Cell, startedAt(sort: Desc)])
+  @@map("surge_events")
+  @@schema("pricing")
+}
+
+model PromoCode {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String   @unique @db.VarChar(30)
+  discountType  String   @map("discount_type") @db.VarChar(20)
+  discountValue Decimal  @map("discount_value") @db.Decimal(8, 2)
+  maxDiscount   Decimal? @map("max_discount") @db.Decimal(8, 2)
+  minFare       Decimal? @map("min_fare") @db.Decimal(8, 2)
+  maxUses       Int?     @map("max_uses")
+  usesCount     Int      @default(0) @map("uses_count")
+  userMaxUses   Int      @default(1) @map("user_max_uses")
+  validFrom     DateTime @map("valid_from")
+  validUntil    DateTime @map("valid_until")
+  isActive      Boolean  @default(true) @map("is_active")
+
+  @@map("promo_codes")
+  @@schema("pricing")
+}
+
+// ============================================================
+// KYC SCHEMA
+// ============================================================
+
+model DriverProfile {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverId     String   @unique @map("driver_id") @db.Uuid
+  vehicleType  String   @map("vehicle_type") @db.VarChar(20)
+  vehicleMake  String?  @map("vehicle_make") @db.VarChar(50)
+  vehicleModel String?  @map("vehicle_model") @db.VarChar(50)
+  vehicleYear  Int?     @map("vehicle_year") @db.SmallInt
+  vehicleColor String?  @map("vehicle_color") @db.VarChar(30)
+  licencePlate String   @map("licence_plate") @db.VarChar(15)
+  upiId        String?  @map("upi_id") @db.VarChar(100)
+  kycStatus    String   @default("PENDING") @map("kyc_status") @db.VarChar(20)
+  approvedBy   String?  @map("approved_by") @db.Uuid
+  approvalNote String?  @map("approval_note") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at")
+
+  driver User @relation(fields: [driverId], references: [id], onDelete: Restrict)
+
+  @@map("driver_profiles")
+  @@schema("kyc")
+}
+
+model Document {
+  id                 String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  driverId           String    @map("driver_id") @db.Uuid
+  docType            String    @map("doc_type") @db.VarChar(30)
+  s3Key              String    @map("s3_key") @db.VarChar(500)
+  verificationStatus String    @default("PENDING") @map("verification_status") @db.VarChar(20)
+  verifiedAt         DateTime? @map("verified_at")
+  rejectionReason    String?   @map("rejection_reason") @db.Text
+  createdAt          DateTime  @default(now()) @map("created_at")
+
+  driver User @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  @@index([driverId, docType])
+  @@map("documents")
+  @@schema("kyc")
+}

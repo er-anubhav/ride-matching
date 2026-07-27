@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   DESIGN TOKENS — Skeuomorphic Light Theme
+   (kept as CSS vars for runtime dynamic access)
+   ============================================= */
+:root {
+  --bg:           #f0ece4;
+  --surface:      #f8f5f0;
+  --surface-raised:#ffffff;
+  --surface-inset: #e8e4dc;
+  --border:        #d4cfc6;
+  --border-strong: #bbb5aa;
+  --text-primary:   #2a2520;
+  --text-secondary: #6b6560;
+  --text-muted:     #9e9890;
+  --brand:         #c97b2e;
+  --brand-dark:    #a8631f;
+  --brand-light:   #e9a95a;
+  --brand-bg:      #fdf3e7;
+  --success:     #3a7d44;
+  --success-bg:  #edf6ef;
+  --danger:      #c0392b;
+  --danger-bg:   #fcecea;
+  --warning:     #9c6a00;
+  --warning-bg:  #fdf6e3;
+  --info:        #1a6ea8;
+  --info-bg:     #e8f3fb;
+  --sidebar-width: 240px;
+}
+
+@layer base {
+  body {
+    @apply font-sans antialiased min-h-screen;
+    background-color: var(--bg);
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+
+  /* Subtle paper texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 23px,
+        rgba(0,0,0,0.025) 23px,
+        rgba(0,0,0,0.025) 24px
+      );
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 7px; height: 7px; }
+::-webkit-scrollbar-track { background: var(--surface-inset); border-radius: 9999px; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #a09890; }

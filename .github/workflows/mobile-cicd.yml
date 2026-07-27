@@ -1,0 +1,73 @@
+name: Mobile Applications CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/mobile-cicd.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - 'apps/mobile/**'
+  workflow_dispatch:
+
+jobs:
+  analyze-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Java JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Setup Melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap Workspace
+        run: |
+          cd apps/mobile
+          melos bootstrap
+
+      - name: Static Analysis
+        run: |
+          cd apps/mobile
+          melos exec -- flutter analyze
+
+      - name: Build Rider App Release APK
+        run: |
+          cd apps/mobile/packages/rider_app
+          flutter build apk --release \
+            --dart-define=API_URL=http://222.167.207.239:8080/api \
+            --dart-define=WS_URL=ws://222.167.207.239:8080/ws
+
+      - name: Upload Rider App APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rider-app-release
+          path: apps/mobile/packages/rider_app/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Build Driver App Release APK
+        run: |
+          cd apps/mobile/packages/driver_app
+          flutter build apk --release \
+            --dart-define=API_URL=http://222.167.207.239:8080/api \
+            --dart-define=WS_URL=ws://222.167.207.239:8080/ws
+
+      - name: Upload Driver App APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: driver-app-release
+          path: apps/mobile/packages/driver_app/build/app/outputs/flutter-apk/app-release.apk

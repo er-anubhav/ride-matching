@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/packages/driver_app/melos_driver_app.iml" filepath="$PROJECT_DIR$/packages/driver_app/melos_driver_app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/rider_app/melos_rider_app.iml" filepath="$PROJECT_DIR$/packages/rider_app/melos_rider_app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/packages/shared/melos_shared.iml" filepath="$PROJECT_DIR$/packages/shared/melos_shared.iml" />
+      <module fileurl="file://$PROJECT_DIR$/melos_mr_rideo_workspace.iml" filepath="$PROJECT_DIR$/melos_mr_rideo_workspace.iml" />
+    </modules>
+  </component>
+</project>

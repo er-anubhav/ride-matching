@@ -1,0 +1,4 @@
+name: mr_rideo_workspace
+
+packages:
+  - packages/*

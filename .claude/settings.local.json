@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/mr-rideo/backend)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/mr-rideo/apps/admin)",
+      "Bash(npm start *)"
+    ]
+  }
+}

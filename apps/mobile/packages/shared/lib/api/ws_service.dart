@@ -1,0 +1,102 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+
+class WsService {
+  static final WsService _instance = WsService._internal();
+  factory WsService() => _instance;
+  WsService._internal();
+
+  WebSocketChannel? _channel;
+  StreamController<Map<String, dynamic>>? _eventController;
+  Timer? _pingTimer;
+  bool _isConnected = false;
+
+  bool get isConnected => _isConnected;
+  Stream<Map<String, dynamic>> get eventStream {
+    _eventController ??= StreamController<Map<String, dynamic>>.broadcast();
+    return _eventController!.stream;
+  }
+
+  String get wsUrl {
+    const envWsUrl = String.fromEnvironment('WS_URL');
+    if (envWsUrl.isNotEmpty) {
+      return envWsUrl;
+    }
+    if (kIsWeb) {
+      return 'ws://localhost:8080/ws';
+    }
+    return Platform.isAndroid ? 'ws://10.0.2.2:8080/ws' : 'ws://localhost:8080/ws';
+  }
+
+  Future<void> connect() async {
+    if (_isConnected) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('jwt_token');
+
+    try {
+      final uri = Uri.parse('$wsUrl${token != null ? '?token=$token' : ''}');
+      _channel = WebSocketChannel.connect(uri);
+      _isConnected = true;
+
+      _channel!.stream.listen(
+        (data) {
+          try {
+            final message = jsonDecode(data as String) as Map<String, dynamic>;
+            _eventController?.add(message);
+          } catch (e) {
+            debugPrint('Failed to decode WS message: $e');
+          }
+        },
+        onError: (error) {
+          debugPrint('WS error: $error');
+          disconnect();
+        },
+        onDone: () {
+          debugPrint('WS connection closed');
+          disconnect();
+        },
+      );
+
+      _startPingTimer();
+    } catch (e) {
+      debugPrint('WS Connection failed: $e');
+      _isConnected = false;
+    }
+  }
+
+  void send(Map<String, dynamic> message) {
+    if (_isConnected && _channel != null) {
+      _channel!.sink.add(jsonEncode(message));
+    }
+  }
+
+  void updateDriverLocation(double lat, double lng, {double? heading}) {
+    send({
+      'type': 'LOCATION_UPDATE',
+      'lat': lat,
+      'lng': lng,
+      if (heading != null) 'heading': heading,
+      'timestamp': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  void _startPingTimer() {
+    _pingTimer?.cancel();
+    _pingTimer = Timer.periodic(const Duration(seconds: 25), (_) {
+      if (_isConnected) {
+        send({'type': 'PING'});
+      }
+    });
+  }
+
+  void disconnect() {
+    _isConnected = false;
+    _pingTimer?.cancel();
+    _channel?.sink.close();
+    _channel = null;
+  }
+}
