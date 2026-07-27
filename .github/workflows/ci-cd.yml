@@ -103,6 +103,7 @@ jobs:
 
       - name: Bootstrap Workspace & Analyze
         run: |
+          export PATH="$PATH":"$HOME/.pub-cache/bin"
           cd apps/mobile
           melos bootstrap
           melos exec -- flutter analyze
