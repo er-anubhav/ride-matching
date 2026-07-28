@@ -36,7 +36,7 @@ class WsService {
         return '$scheme://${uri.host}$portStr/ws';
       }
     } catch (_) {}
-    return 'ws://222.167.207.239:8080/ws';
+    return 'ws://127.0.0.1:8080/ws';
   }
 
   Future<void> connect() async {

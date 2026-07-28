@@ -212,7 +212,7 @@ OLA_MAPS_API_KEY="your_ola_maps_api_key"
 ### Admin Portal Environment Variables (`apps/admin/.env.local`)
 ```env
 REACT_APP_ADMIN_USERNAME=admin_urbanpulse_prod
-REACT_APP_ADMIN_PASSWORD=Secur3_Pr0d_Adm1n_R1de0_2026!
+REACT_APP_ADMIN_PASSWORD=change_this_admin_password_123
 REACT_APP_API_BASE_URL=http://localhost:8080/api
 ```
 

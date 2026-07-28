@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 
-const String _apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+const String _apiKey = 'YOUR_OLA_MAPS_API_KEY';
 
 String _styleUrl(bool isDark) =>
     'https://api.olamaps.io/tiles/vector/v1/styles/'

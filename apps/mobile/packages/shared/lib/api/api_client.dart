@@ -15,7 +15,7 @@ class ApiClient {
       return envApiUrl;
     }
     // Production Server IP
-    return 'http://222.167.207.239:8080/api';
+    return 'http://127.0.0.1:8080/api';
   }
 
 

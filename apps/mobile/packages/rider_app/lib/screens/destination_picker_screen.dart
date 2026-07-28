@@ -111,7 +111,7 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
     });
 
     try {
-      const apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+      const apiKey = 'YOUR_OLA_MAPS_API_KEY';
       
       // Target area: Bias results around current location (or Lucknow center) with a 50km radius (covers Lucknow & Kanpur region)
       const double defaultLat = 26.8500;

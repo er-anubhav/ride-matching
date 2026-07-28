@@ -36,7 +36,7 @@ final routeMetricsProvider = FutureProvider<RouteMetrics?>((ref) async {
   }
 
   try {
-    const apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+    const apiKey = 'YOUR_OLA_MAPS_API_KEY';
     final directionsUrl = 'https://api.olamaps.io/routing/v1/directions?origin=$pLat,$pLng&destination=$dLat,$dLng&api_key=$apiKey';
     
     final response = await http.post(
@@ -1442,7 +1442,7 @@ List<String> _getWebSocketUrls(String pathAndQuery) {
   } catch (_) {}
 
   final fallbackHosts = [
-    '222.167.207.239',
+    '127.0.0.1',
     if (!kIsWeb && Platform.isAndroid) '10.0.2.2',
     'localhost',
     '127.0.0.1',

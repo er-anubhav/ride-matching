@@ -6,8 +6,8 @@
  *   node scripts/ops_dashboard_regression_suite.js [HOST] [PORT] [--strict|--full]
  * 
  * Examples:
- *   node scripts/ops_dashboard_regression_suite.js 222.167.207.239 8080 --strict
- *   node scripts/ops_dashboard_regression_suite.js 222.167.207.239 8080 --full
+ *   node scripts/ops_dashboard_regression_suite.js 127.0.0.1 8080 --strict
+ *   node scripts/ops_dashboard_regression_suite.js 127.0.0.1 8080 --full
  */
 
 const http = require('http');
@@ -17,7 +17,7 @@ const isFullMode = args.includes('--full');
 const isStrict = !isFullMode; // Default to --strict guard mode
 
 const nonFlagArgs = args.filter(a => !a.startsWith('--'));
-const API_HOST = nonFlagArgs[0] || '222.167.207.239';
+const API_HOST = nonFlagArgs[0] || '127.0.0.1';
 const API_PORT = parseInt(nonFlagArgs[1] || '8080', 10);
 const BASE_URL = `http://${API_HOST}:${API_PORT}`;
 

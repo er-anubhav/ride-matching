@@ -15,7 +15,7 @@ A comprehensive, line-by-line, evidence-based technical audit of the **UrbanPuls
 - **Pilot Launch Readiness**: **Very High (92%)**
 - **Production Classification**: **Release Candidate**
 
-The rider application features a highly responsive multi-provider Riverpod state architecture (`ui_state_providers.dart`), clean MapLibre GL rendering with 0ms in-memory theme caching, REST API integration with backend synchronization, zero mock data fallbacks, and real-time WebSocket driver tracking (`ws://222.167.207.239:8080/ride-tracking`).
+The rider application features a highly responsive multi-provider Riverpod state architecture (`ui_state_providers.dart`), clean MapLibre GL rendering with 0ms in-memory theme caching, REST API integration with backend synchronization, zero mock data fallbacks, and real-time WebSocket driver tracking (`ws://127.0.0.1:8080/ride-tracking`).
 
 ---
 
@@ -59,7 +59,7 @@ The rider application features a highly responsive multi-provider Riverpod state
 
 - **Vector Tiles**: MapLibre GL & OlaMaps integration ([`ola_map_widget.dart:73-180`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/widgets/ola_map_widget.dart#L73-L180)).
 - **Instant Theme Switching**: Uses `static final Map<bool, String> _styleCache = {}` for 0ms latency switching without unmounting native views ([`ola_map_widget.dart:73`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/widgets/ola_map_widget.dart#L73)).
-- **Nearby Driver Rendering**: `nearbyDriversProvider` connects to `ws://222.167.207.239:8080/ride-tracking` to render live nearby cabs, bikes, and autos on map ([`ui_state_providers.dart:1420-1540`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart#L1420-L1540)).
+- **Nearby Driver Rendering**: `nearbyDriversProvider` connects to `ws://127.0.0.1:8080/ride-tracking` to render live nearby cabs, bikes, and autos on map ([`ui_state_providers.dart:1420-1540`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart#L1420-L1540)).
 
 ---
 
@@ -80,7 +80,7 @@ The rider application features a highly responsive multi-provider Riverpod state
 
 ## Phase 8 — WebSocket
 
-- **Endpoint Resolution**: Dynamically formats host candidates pointing to `ws://222.167.207.239:8080/ride-tracking` ([`ui_state_providers.dart:1540-1565`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart#L1540-L1565)).
+- **Endpoint Resolution**: Dynamically formats host candidates pointing to `ws://127.0.0.1:8080/ride-tracking` ([`ui_state_providers.dart:1540-1565`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart#L1540-L1565)).
 - **Reconnection Logic**: Exponential 5-second backoff reconnect timer (`_reconnectTimer`) ([`ui_state_providers.dart:1520-1530`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart#L1520-L1530)).
 
 ---

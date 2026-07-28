@@ -180,7 +180,7 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
   StreamSubscription<Position>? _positionSubscription;
   int _simStep = 0;
   
-  static const String apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+  static const String apiKey = 'YOUR_OLA_MAPS_API_KEY';
 
   DriverStateNotifier()
       : super(DriverState(
@@ -340,7 +340,7 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
   Future<void> _connectWebSocket() async {
     try {
       final baseApi = ApiClient().baseUrl;
-      String wsUrl = 'ws://222.167.207.239:8080/ride-tracking';
+      String wsUrl = 'ws://127.0.0.1:8080/ride-tracking';
       try {
         final uri = Uri.parse(baseApi);
         if (uri.host.isNotEmpty) {

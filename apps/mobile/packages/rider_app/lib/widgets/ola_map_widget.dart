@@ -9,7 +9,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:rider_app/providers/ui_state_providers.dart';
 
 // ─── Style URLs ────────────────────────────────────────────────────────────────
-const String _apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+const String _apiKey = 'YOUR_OLA_MAPS_API_KEY';
 
 String _styleUrl(bool isDark) =>
     'https://api.olamaps.io/tiles/vector/v1/styles/'

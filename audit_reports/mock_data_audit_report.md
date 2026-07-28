@@ -68,7 +68,7 @@ MOCK-DATA CLEANLINESS SCORE:     98%
 
 ### Summary of Cleanup Actions Completed:
 1. **Removed Fallback Coords**: Replaced hardcoded Lucknow coordinates (`26.8500, 80.9400`) across all mobile providers and UI screens with live device GPS or strict null checks.
-2. **Purged Simulation Timers**: Removed artificial movement step timers (`Timer.periodic`) from both `rider_app` and `driver_app`. Real-time vehicle positions flow strictly through live WebSocket streams (`ws://222.167.207.239:8080/ride-tracking`).
+2. **Purged Simulation Timers**: Removed artificial movement step timers (`Timer.periodic`) from both `rider_app` and `driver_app`. Real-time vehicle positions flow strictly through live WebSocket streams (`ws://127.0.0.1:8080/ride-tracking`).
 3. **Migrated In-Memory Stores**: Replaced transient maps in `user_api.ts` with explicit PostgreSQL Prisma models (`SavedPlace` and `SupportTicket`).
 4. **Dynamic Delhi Pricing**: Configured dynamic city fare matrix in backend `GET/PUT /api/admin/pricing` for Delhi (`CITY_DELHI`).
 5. **Secure Environment Variables**: Purged hardcoded admin credentials; configured `.env.local` with secure production keys.

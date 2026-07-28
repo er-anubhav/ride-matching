@@ -90,7 +90,7 @@ The complete driver ride lifecycle is managed by an explicit enum state machine:
 
 ## Phase 8 — WebSocket
 
-- **Endpoint**: `ws://222.167.207.239:8080/ride-tracking` ([`driver_state_providers.dart:335`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart#L335)).
+- **Endpoint**: `ws://127.0.0.1:8080/ride-tracking` ([`driver_state_providers.dart:335`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart#L335)).
 - **Driver Registration**: Sends `register_driver` message with vehicle details and live coordinates upon connection ([`driver_state_providers.dart:363-368`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart#L363-L368)).
 
 ---
