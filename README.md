@@ -44,43 +44,43 @@
 ## System Architecture
 
 ```mermaid
-flowchart TD
+graph TB
     subgraph Clients["Mobile & Web Clients"]
-        RA["Rider App (Flutter + Riverpod)"]
-        DA["Driver App (Flutter + Riverpod)"]
-        AP["Admin Portal (React 18 + TS)"]
+        RA["Rider App (Flutter)"]
+        DA["Driver App (Flutter)"]
+        AP["Admin Portal (React)"]
     end
 
     subgraph Gateway["API & Gateway Layer"]
-        API["Node.js / Fastify Gateway (Port 8080)"]
-        WS["WebSocket Server (/ride-tracking)"]
+        API["Fastify Gateway"]
+        WS["WebSocket Server"]
     end
 
     subgraph Services["Backend Microservices"]
-        GME["Go Spatial Matching Engine (Port 8081)"]
-        PE["Pricing & Fare Engine"]
-        KYC["KYC & R2 Storage Service"]
+        GME["Go Spatial Matching Engine"]
+        PE["Pricing Engine"]
+        KYC["KYC & R2 Service"]
     end
 
     subgraph Data["Persistence Layer"]
-        PG[("PostgreSQL 16 / Prisma ORM")]
-        RD[("Redis 7 / PubSub & Geo-Index")]
-        R2[("Cloudflare R2 / Object Storage")]
+        PG["PostgreSQL 16 Database"]
+        RD["Redis 7 Spatial Cache"]
+        R2["Cloudflare R2 Storage"]
     end
 
-    RA -->|"REST API (HTTP/2)"| API
-    DA -->|"REST API (HTTP/2)"| API
-    AP -->|"REST API (HTTP/2)"| API
+    RA -->|REST API| API
+    DA -->|REST API| API
+    AP -->|REST API| API
 
-    RA <-->|"WebSockets"| WS
-    DA <-->|"WebSockets"| WS
+    RA -->|WebSockets| WS
+    DA -->|WebSockets| WS
 
-    API <--> PG
-    API <--> RD
-    API <--> GME
+    API --> PG
+    API --> RD
+    API --> GME
 
-    GME <--> RD
-    KYC <--> R2
+    GME --> RD
+    KYC --> R2
 ```
 
 ---
