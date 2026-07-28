@@ -45,42 +45,44 @@
 
 ```mermaid
 graph TD
-    subgraph Clients["Mobile & Web Clients"]
-        RA["Rider App"]
-        DA["Driver App"]
-        AP["Admin Portal"]
-    end
+    A["Mobile & Web Clients<br/>(Rider App, Driver App, Admin Portal)"] --> B["API Gateway & WebSockets<br/>(Node.js / Fastify - Port 8080)"]
+    B --> C["Go Spatial Matching Engine<br/>(Sub-Second Radius Dispatch - Port 8081)"]
+    B --> D["Pricing & Fare Engine"]
+    B --> E["KYC & Binary Storage Service"]
+    
+    B --> F[("PostgreSQL 16 Database")]
+    C --> G[("Redis 7 Geo-Spatial Index")]
+    E --> H[("Cloudflare R2 Object Storage")]
+```
 
-    subgraph Gateway["API & Gateway Layer"]
-        API["Fastify REST API"]
-        WS["WebSocket Server"]
-    end
-
-    subgraph Services["Backend Microservices"]
-        GME["Go Spatial Matching Engine"]
-        PE["Pricing Engine"]
-        KYC["KYC & R2 Storage"]
-    end
-
-    subgraph Data["Persistence Layer"]
-        PG["PostgreSQL Database"]
-        RD["Redis Spatial Cache"]
-        R2["Cloudflare R2 Bucket"]
-    end
-
-    RA --> API
-    DA --> API
-    AP --> API
-
-    RA --> WS
-    DA --> WS
-
-    API --> PG
-    API --> RD
-    API --> GME
-
-    GME --> RD
-    KYC --> R2
+```
++-----------------------------------------------------------------------+
+|                        MOBILE & WEB CLIENTS                           |
+|  +--------------------+  +--------------------+  +-----------------+  |
+|  |     Rider App      |  |     Driver App     |  |  Admin Portal   |  |
+|  | (Flutter + Riverpod)|  | (Flutter + Riverpod)|  | (React 18 + TS) |  |
+|  +---------+----------+  +---------+----------+  +--------+--------+  |
++------------|-------------------|--------------------------|-----------+
+             |                   |                          |
+             +-------------------+--------------------------+
+                                 | (REST API / WebSockets)
+                                 v
++-----------------------------------------------------------------------+
+|                        API & GATEWAY LAYER                            |
+|  +--------------------------------+  +-----------------------------+  |
+|  |   Fastify Gateway (Port 8080)  |  |    WebSocket Server (/ws)   |  |
+|  +---------------+----------------+  +--------------+--------------+  |
++------------------|----------------------------------|-----------------+
+                   |                                  |
+                   v                                  v
++------------------------------------+  +-------------------------------+
+|       BACKEND MICROSERVICES        |  |       PERSISTENCE LAYER       |
+|  +------------------------------+  |  |  +-------------------------+  |
+|  | Go Spatial Engine (Port 8081)|  |  |  | PostgreSQL 16 Database  |  |
+|  | Pricing & Fare Engine        |  |  |  | Redis 7 Spatial Cache   |  |
+|  | KYC & R2 Storage Service     |  |  |  | Cloudflare R2 Bucket    |  |
+|  +------------------------------+  |  |  +-------------------------+  |
++------------------------------------+  +-------------------------------+
 ```
 
 ---
