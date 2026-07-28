@@ -43,18 +43,6 @@
 
 ## System Architecture
 
-```mermaid
-graph TD
-    A["Mobile & Web Clients<br/>(Rider App, Driver App, Admin Portal)"] --> B["API Gateway & WebSockets<br/>(Node.js / Fastify - Port 8080)"]
-    B --> C["Go Spatial Matching Engine<br/>(Sub-Second Radius Dispatch - Port 8081)"]
-    B --> D["Pricing & Fare Engine"]
-    B --> E["KYC & Binary Storage Service"]
-    
-    B --> F[("PostgreSQL 16 Database")]
-    C --> G[("Redis 7 Geo-Spatial Index")]
-    E --> H[("Cloudflare R2 Object Storage")]
-```
-
 ```
 +-----------------------------------------------------------------------+
 |                        MOBILE & WEB CLIENTS                           |
@@ -84,6 +72,15 @@ graph TD
 |  +------------------------------+  |  |  +-------------------------+  |
 +------------------------------------+  +-------------------------------+
 ```
+
+### Component Architecture Matrix
+
+| Component Layer | Technology Stack | Core Responsibility |
+|---|---|---|
+| **Mobile & Web Clients** | Flutter 3.22 (Riverpod), React 18 (TypeScript) | Rider mobile app, Driver Partner mobile app, Admin Operations portal |
+| **API & Gateway Layer** | Fastify 4.x, TypeScript, WebSockets | Central API Gateway (Port 8080) & real-time WebSocket ride tracking (`/ws`) |
+| **Backend Microservices** | Go 1.22, Fastify Services | Sub-second Go spatial matching engine (Port 8081), city pricing matrix, KYC processing |
+| **Persistence Layer** | PostgreSQL 16 (Prisma), Redis 7, Cloudflare R2 | Ride ledgers, Redis spatial geo-indexing (`GEOADD`/`GEORADIUS`), Cloudflare R2 binary storage |
 
 ---
 
