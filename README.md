@@ -63,17 +63,17 @@ flowchart TD
     end
 
     subgraph Data["💾 Persistence Layer"]
-        PG[(🐘 PostgreSQL 16 / Prisma ORM)]
-        RD[(🔴 Redis 7 / PubSub & Geo-Index)]
-        R2[(☁️ Cloudflare R2 / Object Storage)]
+        PG[("🐘 PostgreSQL 16 / Prisma ORM")]
+        RD[("🔴 Redis 7 / PubSub & Geo-Index")]
+        R2[("☁️ Cloudflare R2 / Object Storage")]
     end
 
-    RA -- REST API (HTTP/2) --> API
-    DA -- REST API (HTTP/2) --> API
-    AP -- REST API (HTTP/2) --> API
+    RA -->|"REST API (HTTP/2)"| API
+    DA -->|"REST API (HTTP/2)"| API
+    AP -->|"REST API (HTTP/2)"| API
 
-    RA <-- WebSockets --> WS
-    DA <-- WebSockets --> WS
+    RA <-->|"WebSockets"| WS
+    DA <-->|"WebSockets"| WS
 
     API <--> PG
     API <--> RD
