@@ -44,36 +44,36 @@
 ## System Architecture
 
 ```mermaid
-graph TB
+graph TD
     subgraph Clients["Mobile & Web Clients"]
-        RA["Rider App (Flutter)"]
-        DA["Driver App (Flutter)"]
-        AP["Admin Portal (React)"]
+        RA["Rider App"]
+        DA["Driver App"]
+        AP["Admin Portal"]
     end
 
     subgraph Gateway["API & Gateway Layer"]
-        API["Fastify Gateway"]
+        API["Fastify REST API"]
         WS["WebSocket Server"]
     end
 
     subgraph Services["Backend Microservices"]
         GME["Go Spatial Matching Engine"]
         PE["Pricing Engine"]
-        KYC["KYC & R2 Service"]
+        KYC["KYC & R2 Storage"]
     end
 
     subgraph Data["Persistence Layer"]
-        PG["PostgreSQL 16 Database"]
-        RD["Redis 7 Spatial Cache"]
-        R2["Cloudflare R2 Storage"]
+        PG["PostgreSQL Database"]
+        RD["Redis Spatial Cache"]
+        R2["Cloudflare R2 Bucket"]
     end
 
-    RA -->|REST API| API
-    DA -->|REST API| API
-    AP -->|REST API| API
+    RA --> API
+    DA --> API
+    AP --> API
 
-    RA -->|WebSockets| WS
-    DA -->|WebSockets| WS
+    RA --> WS
+    DA --> WS
 
     API --> PG
     API --> RD
