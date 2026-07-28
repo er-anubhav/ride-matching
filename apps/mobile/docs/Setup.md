@@ -15,7 +15,7 @@
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd mr-rideo/apps/mobile
+   cd ride-matching/apps/mobile
    ```
 
 2. Bootstrap dependencies for all packages:

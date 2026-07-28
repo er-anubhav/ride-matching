@@ -1,6 +1,6 @@
-# Mr. Rideo Engineering Knowledge Base
+# Ride Matching Engineering Knowledge Base
 
-Welcome to the single source of truth for the Mr. Rideo backend architecture, infrastructure, and engineering decisions.
+Welcome to the single source of truth for the Ride Matching backend architecture, infrastructure, and engineering decisions.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Welcome to the single source of truth for the Mr. Rideo backend architecture, in
 ---
 
 ## System Overview
-Mr. Rideo is a ride-hailing platform built using a Modular Monolith architecture.
+Ride Matching is a ride-hailing platform built using a Modular Monolith architecture.
 - **Runtime:** Node.js (TypeScript) + Fastify
 - **Database:** PostgreSQL (Prisma ORM)
 - **Caching & State:** Redis
@@ -29,7 +29,7 @@ Mr. Rideo is a ride-hailing platform built using a Modular Monolith architecture
 *(Documentation will be appended here continuously upon completion of features as per the 9-Phase process.)*
 
 ## Architecture Documentation
-- [Database Relational Integrity](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/mr-rideo/docs/database_relations.md)
+- [Database Relational Integrity](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/docs/database_relations.md)
 
 ## API Documentation
-- [Driver Trip Interaction API](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/mr-rideo/docs/driver_trip_api.md)
+- [Driver Trip Interaction API](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/docs/driver_trip_api.md)

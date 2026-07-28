@@ -1,4 +1,4 @@
-package com.mrrideo.driver.driver_app
+package com.ridematching.rider_app
 
 import io.flutter.embedding.android.FlutterActivity
 

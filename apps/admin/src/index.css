@@ -34,11 +34,16 @@
 }
 
 @layer base {
+  *, ::before, ::after {
+    font-weight: 400 !important;
+  }
+
   body {
     @apply font-sans antialiased min-h-screen;
     background-color: var(--bg);
     color: var(--text-primary);
     line-height: 1.6;
+    font-weight: 400 !important;
   }
 
   /* Subtle paper texture */

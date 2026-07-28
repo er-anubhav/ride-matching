@@ -1,7 +1,7 @@
-# Mr. Rideo Backend Technical Audit Report
+# Ride Matching Backend Technical Audit Report
 
 ## Executive Summary
-This document provides a brutal, evidence-based technical audit of the Mr. Rideo modular monolith backend. The codebase has been assessed against the specifications in the Product Requirements Document (PRD).
+This document provides a brutal, evidence-based technical audit of the Ride Matching modular monolith backend. The codebase has been assessed against the specifications in the Product Requirements Document (PRD).
 
 **Overall Completion Estimate:** ~25%
 **Status:** **Functional Prototype / Demo Sandbox**

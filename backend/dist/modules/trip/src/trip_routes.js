@@ -134,8 +134,8 @@ async function tripRoutes(server) {
     // --- Driver Trip Interaction Endpoints ---
     const requireDriver = (request) => {
         const user = request.user;
-        if (user.role !== 'DRIVER') {
-            throw new Error('Only drivers can perform this action');
+        if (user.role !== 'DRIVER' && user.role !== 'ADMIN') {
+            throw new Error('Only drivers or admins can perform this action');
         }
         return user;
     };

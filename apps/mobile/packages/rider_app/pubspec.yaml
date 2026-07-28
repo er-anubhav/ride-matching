@@ -1,5 +1,5 @@
 name: rider_app
-description: "Mr. Rideo Rider Application - Premium dark-themed ride sharing application."
+description: "Ride Matching Rider Application - Premium dark-themed ride sharing application."
 version: 1.0.0
 publish_to: 'none'
 
@@ -22,6 +22,7 @@ dependencies:
     path: ../shared
   maplibre_gl: ^0.26.2
   http: ^1.2.0
+  image_picker: ^1.1.0
 
 flutter:
   uses-material-design: true

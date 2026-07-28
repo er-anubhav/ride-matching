@@ -6,7 +6,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
     <application
-        android:label="Mr. Rideo Partner"
+        android:label="Ride Matching Partner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

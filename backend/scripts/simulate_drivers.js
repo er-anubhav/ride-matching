@@ -8,8 +8,9 @@ const DRIVERS_PER_RIDER = 3;
 const activeConnections = new Map();
 
 function fetchRiderLocations() {
+  const port = process.env.PORT || 8085;
   return new Promise((resolve) => {
-    http.get('http://localhost:8080/api/system/rider-locations', (res) => {
+    http.get(`http://localhost:${port}/api/system/rider-locations`, (res) => {
       let data = '';
       res.on('data', (chunk) => { data += chunk; });
       res.on('end', () => {
@@ -50,7 +51,8 @@ function startDriverForRider(riderId, index, startLat, startLng) {
   const speed = 0.0006; // ~60m per step (realistic street speed)
   let stepsToTurn = Math.floor(4 + Math.random() * 6);
 
-  const wsUrl = `ws://localhost:8080/ride-tracking?driverId=${driverId}`;
+  const port = process.env.PORT || 8085;
+  const wsUrl = `ws://localhost:${port}/ride-tracking?driverId=${driverId}`;
   const ws = new WebSocket(wsUrl);
   
   const connectionInfo = {

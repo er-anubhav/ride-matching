@@ -1,6 +1,6 @@
-# Mr. Rideo Mobile Applications Monorepo
+# Ride Matching Mobile Applications Monorepo
 
-Welcome to the **Mr. Rideo** mobile client repository. This monorepo contains the Flutter applications for both **Riders** and **Drivers**, along with a shared UI and API library.
+Welcome to the **Ride Matching** mobile client repository. This monorepo contains the Flutter applications for both **Riders** and **Drivers**, along with a shared UI and API library.
 
 ---
 

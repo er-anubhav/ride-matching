@@ -3,25 +3,25 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: mrrideo-postgres
+    container_name: ridematching-postgres
     restart: always
     environment:
-      POSTGRES_USER: mrrideo
+      POSTGRES_USER: ridematching
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-supersecret123}
-      POSTGRES_DB: mrrideo
+      POSTGRES_DB: ridematching
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mrrideo"]
+      test: ["CMD-SHELL", "pg_isready -U ridematching"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: mrrideo-redis
+    container_name: ridematching-redis
     restart: always
     ports:
       - "6379:6379"
@@ -38,7 +38,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: mrrideo-backend
+    container_name: ridematching-backend
     restart: always
     environment:
       - NODE_ENV=production
@@ -47,7 +47,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://mrrideo:${POSTGRES_PASSWORD:-supersecret123}@postgres:5432/mrrideo?schema=public
+      - DATABASE_URL=postgresql://ridematching:${POSTGRES_PASSWORD:-supersecret123}@postgres:5432/ridematching?schema=public
       - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key_here}
       - FAST2SMS_API_KEY=${FAST2SMS_API_KEY}
       - CLOUDFLARE_R2_ACCOUNT_ID=${CLOUDFLARE_R2_ACCOUNT_ID}

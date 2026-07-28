@@ -27,7 +27,7 @@ class WalletScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          "Mr. Rideo Wallet",
+          "Ride Matching Wallet",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18,
             
@@ -314,7 +314,7 @@ class ProfileScreen extends ConsumerWidget {
               // Version Card
               Center(
                 child: Text(
-                  "Mr. Rideo v1.0.0",
+                  "Ride Matching v1.0.0",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: AppColors.textMuted,
@@ -830,7 +830,7 @@ class _WalletPaymentScreenState extends ConsumerState<WalletPaymentScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "MR. RIDEO CARD",
+                        "RIDE MATCHING CARD",
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           letterSpacing: 1.5,

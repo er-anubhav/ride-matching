@@ -105,7 +105,7 @@ class _SearchingDriverScreenState extends ConsumerState<SearchingDriverScreen>
             ),
             const SizedBox(height: 8),
             Text(
-              "Matching you with the nearest Mr. Rideo captains",
+              "Matching you with the nearest Ride Matching captains",
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 color: AppColors.textSecondary,

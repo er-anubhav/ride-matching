@@ -51,7 +51,7 @@ export async function authRoutes(server: FastifyInstance) {
           data: {
             phone: '0000000000',
             name: 'Admin',
-            email: 'admin@mrrideo.com',
+            email: 'admin@ridematching.com',
             role: 'ADMIN',
           },
         });

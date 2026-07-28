@@ -44,7 +44,7 @@ async function authRoutes(server) {
                     data: {
                         phone: '0000000000',
                         name: 'Admin',
-                        email: 'admin@mrrideo.com',
+                        email: 'admin@ridematching.com',
                         role: 'ADMIN',
                     },
                 });

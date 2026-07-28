@@ -73,10 +73,11 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
   static final Map<bool, String> _styleCache = {};
 
   // ── Derived helpers ──────────────────────────────────────────────────────────
-  LatLng get _initialCenter => LatLng(
-        widget.centerLat ?? widget.pickupLat ?? 12.9716,
-        widget.centerLng ?? widget.pickupLng ?? 77.5946,
-      );
+  LatLng get _initialCenter {
+    final lat = widget.centerLat ?? widget.pickupLat ?? widget.driverLat;
+    final lng = widget.centerLng ?? widget.pickupLng ?? widget.driverLng;
+    return LatLng(lat ?? 0, lng ?? 0);
+  }
 
   // ── Lifecycle ────────────────────────────────────────────────────────────────
   @override
@@ -91,6 +92,13 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
     if (widget.isDark != oldWidget.isDark) {
       _loadStyle();
     } else if (_controller != null && _styleLoaded) {
+      if ((widget.centerLat != oldWidget.centerLat || widget.centerLng != oldWidget.centerLng) &&
+          widget.centerLat != null && widget.centerLng != null) {
+        _controller!.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(widget.centerLat!, widget.centerLng!),
+          widget.zoom,
+        ));
+      }
       _syncMarkersAndRoute();
     }
   }
@@ -492,7 +500,7 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
           'https://api.olamaps.io/routing/v1/directions'
           '?origin=$pLat,$pLng&destination=$dLat,$dLng&api_key=$_apiKey');
       final resp = await http.post(url, headers: {
-        'X-Request-Id': 'mr-rideo-${Random().nextInt(1000000)}',
+        'X-Request-Id': 'ride-matching-${Random().nextInt(1000000)}',
       });
       if (resp.statusCode == 200) {
         final data = jsonDecode(resp.body);
@@ -583,7 +591,10 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
   // ── Build ─────────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    if (_loadingStyle || _resolvedStyleString == null) {
+    final activeLat = widget.centerLat ?? widget.pickupLat ?? widget.driverLat;
+    final activeLng = widget.centerLng ?? widget.pickupLng ?? widget.driverLng;
+
+    if (_loadingStyle || _resolvedStyleString == null || activeLat == null || activeLng == null || activeLat == 0 || activeLng == 0) {
       return Container(
         color: widget.isDark ? const Color(0xFF18181B) : const Color(0xFFF3F4F6),
         child: const Center(

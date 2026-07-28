@@ -1,6 +1,6 @@
-# Senior QA Engineering & Testing Audit Report — Mr. Rideo Platform
+# Senior QA Engineering & Testing Audit Report — Ride Matching Platform
 
-**Project**: Mr. Rideo Mobility Platform (Rider App, Driver App, Admin Portal, Backend API, Go Matching Engine)  
+**Project**: Ride Matching Mobility Platform (Rider App, Driver App, Admin Portal, Backend API, Go Matching Engine)  
 **Scope**: Codebase Test Suite & Automation Inspection across all 25 Testing Phases  
 **Auditors**: Principal QA Architect, Senior SDET, Performance Test Engineer, & Security QA Lead  
 **Date**: July 28, 2026  
@@ -30,8 +30,8 @@ A comprehensive, evidence-based software testing audit was performed across all 
  /----------------\
 ```
 
-- **Rider App Tests**: [`provider_test.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/rider_app/test/provider_test.dart) (9.9 KB) — Verifies Riverpod state providers, fare calculations, search history, and bookmarks.
-- **Driver App Tests**: [`driver_provider_test.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/driver_app/test/driver_provider_test.dart) (4.7 KB) — Verifies duty state toggle, location updates, and ride acceptance state machine.
+- **Rider App Tests**: [`provider_test.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/test/provider_test.dart) (9.9 KB) — Verifies Riverpod state providers, fare calculations, search history, and bookmarks.
+- **Driver App Tests**: [`driver_provider_test.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/driver_app/test/driver_provider_test.dart) (4.7 KB) — Verifies duty state toggle, location updates, and ride acceptance state machine.
 - **Testing Strategy Score**: **92 / 100**
 
 ---
@@ -51,9 +51,9 @@ A comprehensive, evidence-based software testing audit was performed across all 
 ## Phase 3 & 4 — Widget & Component Testing
 
 - **Flutter Widget Assertions**:
-  - `home_screen.dart`: Verified 3-tap booking widgets, vehicle selector pills, and address search sheets ([`home_screen.dart:450-580`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/rider_app/lib/screens/home_screen.dart#L450-L580)).
+  - `home_screen.dart`: Verified 3-tap booking widgets, vehicle selector pills, and address search sheets ([`home_screen.dart:450-580`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/home_screen.dart#L450-L580)).
 - **React Admin Components**:
-  - `Dashboard.tsx`: Verified KYC approval modals, rejection reason forms, stat cards, and CSV export triggers ([`Dashboard.tsx:81-131`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/admin/src/components/Dashboard.tsx#L81-L131)).
+  - `Dashboard.tsx`: Verified KYC approval modals, rejection reason forms, stat cards, and CSV export triggers ([`Dashboard.tsx:81-131`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/components/Dashboard.tsx#L81-L131)).
 
 ---
 
@@ -85,7 +85,7 @@ A comprehensive, evidence-based software testing audit was performed across all 
 
 ## Phase 7 & 8 — Database & WebSocket Integrity
 
-- **PostgreSQL Prisma Migrations**: DDL schema migration file [`20260728000000_init/migration.sql`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/backend/prisma/migrations/20260728000000_init/migration.sql) verified.
+- **PostgreSQL Prisma Migrations**: DDL schema migration file [`20260728000000_init/migration.sql`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/prisma/migrations/20260728000000_init/migration.sql) verified.
 - **WebSocket Reconnection**: Handshake reconnect logic with backoff algorithm handles network drops cleanly.
 
 ---

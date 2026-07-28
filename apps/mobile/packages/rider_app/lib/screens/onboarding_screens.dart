@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
 
@@ -83,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Official Mr. Rideo Logo
+              // Official Ride Matching Logo
               Image.asset(
                 'assets/logo.jpeg',
                 width: 240,
@@ -448,6 +450,27 @@ class ProfileSetupScreen extends ConsumerStatefulWidget {
 
 class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   final TextEditingController _nameController = TextEditingController();
+  File? _imageFile;
+
+  Future<void> _pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 600,
+        maxHeight: 600,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _imageFile = File(picked.path);
+        });
+        ref.read(userProfileProvider.notifier).updateAvatarUrl(picked.path);
+      }
+    } catch (e) {
+      debugPrint("Error picking profile image: $e");
+    }
+  }
 
   @override
   void dispose() {
@@ -498,34 +521,42 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               const SizedBox(height: 40),
               // Profile Upload Circle
               Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 54,
-                      backgroundColor: AppColors.surface,
-                      child: Icon(
-                        LucideIcons.user,
-                        size: 44,
-                        color: AppColors.textMuted,
+                child: GestureDetector(
+                  onTap: _pickImage,
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 54,
+                        backgroundColor: AppColors.surfaceBorder,
+                        backgroundImage: _imageFile != null
+                            ? FileImage(_imageFile!)
+                            : null,
+                        child: _imageFile == null
+                            ? Icon(
+                                LucideIcons.user,
+                                size: 44,
+                                color: AppColors.textMuted,
+                              )
+                            : null,
                       ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primary,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          LucideIcons.camera,
-                          size: 18,
-                          color: Colors.white,
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.camera,
+                            size: 18,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 48),

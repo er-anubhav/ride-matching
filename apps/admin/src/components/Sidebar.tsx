@@ -47,7 +47,7 @@ const Sidebar: React.FC<SidebarProps> = ({ user, onLogout }) => {
       <div className="px-4 py-5 border-b font-sans border-[var(--border)]" style={{ background: 'linear-gradient(180deg, #fff 0%, #f8f5f0 100%)' }}>
         <div className="flex items-center gap-3">
           <div>
-            <div className="text-[1.5rem] text-[var(--text-primary)] leading-[1.2]">Mr. Rideo</div>
+            <div className="text-[1.5rem] text-[var(--text-primary)] leading-[1.2]">Ride Matching</div>
             <div className="text-[0.6rem] text-[var(--text-muted)] uppercase tracking-[0.08em]">Admin Panel</div>
           </div>
         </div>

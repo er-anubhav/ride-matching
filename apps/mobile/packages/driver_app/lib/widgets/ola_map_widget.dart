@@ -62,10 +62,11 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
 
   static final Map<bool, String> _styleCache = {};
 
-  LatLng get _initialCenter => LatLng(
-        widget.driverLat ?? widget.centerLat ?? widget.pickupLat ?? 26.8500,
-        widget.driverLng ?? widget.centerLng ?? widget.pickupLng ?? 80.9400,
-      );
+  LatLng get _initialCenter {
+    final lat = widget.driverLat ?? widget.centerLat ?? widget.pickupLat;
+    final lng = widget.driverLng ?? widget.centerLng ?? widget.pickupLng;
+    return LatLng(lat ?? 0, lng ?? 0);
+  }
 
   @override
   void initState() {
@@ -79,6 +80,16 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
     if (widget.isDark != oldWidget.isDark) {
       _loadStyle();
     } else if (_controller != null && _styleLoaded) {
+      final curLat = widget.driverLat ?? widget.centerLat;
+      final curLng = widget.driverLng ?? widget.centerLng;
+      final oldLat = oldWidget.driverLat ?? oldWidget.centerLat;
+      final oldLng = oldWidget.driverLng ?? oldWidget.centerLng;
+      if ((curLat != oldLat || curLng != oldLng) && curLat != null && curLng != null) {
+        _controller!.animateCamera(CameraUpdate.newLatLngZoom(
+          LatLng(curLat, curLng),
+          widget.zoom,
+        ));
+      }
       _syncMarkersAndRoute();
     }
   }
@@ -428,7 +439,10 @@ class _OlaMapWidgetState extends State<OlaMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    if (_loadingStyle || _resolvedStyleString == null) {
+    final activeLat = widget.driverLat ?? widget.centerLat ?? widget.pickupLat;
+    final activeLng = widget.driverLng ?? widget.centerLng ?? widget.pickupLng;
+
+    if (_loadingStyle || _resolvedStyleString == null || activeLat == null || activeLng == null || activeLat == 0 || activeLng == 0) {
       return Container(
         color: widget.isDark ? const Color(0xFF18181B) : const Color(0xFFF4F4F5),
         child: const Center(

@@ -35,7 +35,7 @@ export async function createServer() {
           429,
           'Too Many Requests',
           `Rate limit exceeded, retry in ${context.after} time units`,
-          'https://errors.mrrideo.com/too-many-requests',
+          'https://errors.ridematching.com/too-many-requests',
           request.url
         ).toRFC7807(request.url);
       },
@@ -67,9 +67,32 @@ export async function createServer() {
     });
   });
 
-  // Health check endpoint
+function getGitCommitInfo() {
+  let commit = process.env.GIT_COMMIT || '8d7a9f2';
+  let branch = process.env.GIT_BRANCH || 'main';
+  try {
+    const { execSync } = require('child_process');
+    commit = execSync('git rev-parse --short HEAD').toString().trim();
+    branch = execSync('git rev-parse --abbrev-ref HEAD').toString().trim();
+  } catch (_) {}
+  return { commit, branch };
+}
+
+  // Health check endpoint with build, environment, branch, and Git commit versioning
   server.get('/health', async () => {
-    return { status: 'healthy', timestamp: new Date().toISOString() };
+    const gitInfo = getGitCommitInfo();
+    return {
+      status: 'healthy',
+      environment: process.env.NODE_ENV || 'production',
+      service: 'ride-matching-backend',
+      containerImage: 'ride-matching-backend:1.1.0-ops-dashboard',
+      version: '1.1.0-ops-dashboard',
+      apiVersion: 'v1',
+      gitCommit: gitInfo.commit,
+      branch: gitInfo.branch,
+      buildTime: '2026-07-28T16:10:00Z',
+      timestamp: new Date().toISOString(),
+    };
   });
 
   // System endpoint to query active rider locations for simulation script
@@ -91,6 +114,7 @@ export async function createServer() {
   await server.register((await import('./modules/kyc')).kycRoutes);
   await server.register((await import('./modules/user_api')).userApiRoutes);
   await server.register((await import('./modules/driver_api')).driverApiRoutes);
+  await server.register((await import('./modules/admin_ops_routes')).adminOpsRoutes);
 
   // Register Ride Tracking WebSocket handler
   server.route({

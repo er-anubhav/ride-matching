@@ -55,21 +55,21 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
 
     final List<Map<String, dynamic>> vehicles = [
       {
-        "name": "Mr. Rideo Bike",
+        "name": "Ride Matching Bike",
         "subtitle": "Fastest. Skip traffic.",
         "price": bikePrice,
         "eta": bikeEta,
         "icon": Icons.motorcycle,
       },
       {
-        "name": "Mr. Rideo Auto",
+        "name": "Ride Matching Auto",
         "subtitle": "Affordable 3-wheeler.",
         "price": autoPrice,
         "eta": autoEta,
         "icon": Icons.electric_rickshaw,
       },
       {
-        "name": "Mr. Rideo Cab",
+        "name": "Ride Matching Cab",
         "subtitle": "Spacious. AC rides.",
         "price": cabPrice,
         "eta": cabEta,
@@ -279,7 +279,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                "Mr. Rideo Wallet (₹345)",
+                                "Ride Matching Wallet (₹345)",
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
                                   color: AppColors.textPrimary,

@@ -1,4 +1,4 @@
-name: mr_rideo_workspace
+name: ride_matching_workspace
 
 packages:
   - packages/*

@@ -5,7 +5,7 @@ import { initializeWorkers } from './workers';
 
 async function bootstrap() {
   try {
-    logger.info('Starting Mr. Rideo Backend Modular Monolith...');
+    logger.info('Starting Ride Matching Backend Modular Monolith...');
     initializeWorkers();
     const server = await createServer();
 
@@ -17,7 +17,7 @@ async function bootstrap() {
     logger.info(`Server successfully listening on: ${address}`);
     logger.info(`WebSocket endpoint active at: ws://${config.HOST}:${config.PORT}/ride-tracking`);
   } catch (err) {
-    logger.fatal(err, 'Failed to bootstrap Mr. Rideo Backend server');
+    logger.fatal(err, 'Failed to bootstrap Ride Matching Backend server');
     process.exit(1);
   }
 }

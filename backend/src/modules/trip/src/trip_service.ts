@@ -219,7 +219,8 @@ export class TripService {
     const paymentId = await CashPaymentProvider.instance.createPayment(
       tripId,
       Number(dbTrip.estimatedFare),
-      'CASH'
+      'CASH',
+      dbTrip.riderId
     );
 
     // Emit trip.completed event
@@ -234,21 +235,22 @@ export class TripService {
     FcmService.sendPushNotification(
       trip.riderId,
       'Trip Completed',
-      'Your trip has ended. Thank you for riding with Mr. Rideo!',
+      'Your trip has ended. Thank you for riding with Ride Matching!',
       { tripId }
     ).catch(e => logger.error(e));
 
     return trip;
   }
 
-  public static async cancelTrip(tripId: string, reason: string, actorId: string): Promise<TripState> {
+  public static async cancelTrip(tripId: string, reason: string, actorId?: string): Promise<TripState> {
+    const isValidUuid = actorId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actorId);
     let dbTrip;
     try {
       dbTrip = await prisma.trip.update({
         where: { id: tripId },
         data: {
           status: 'CANCELLED',
-          cancelledBy: actorId,
+          cancelledBy: isValidUuid ? actorId : null,
           cancellationReason: reason,
         },
       });

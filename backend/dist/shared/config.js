@@ -11,7 +11,7 @@ const configSchema = zod_1.z.object({
     PORT: zod_1.z.preprocess((val) => Number(val ?? 8080), zod_1.z.number().default(8080)),
     HOST: zod_1.z.string().default('0.0.0.0'),
     DATABASE_URL: zod_1.z.string().optional(),
-    JWT_SECRET: zod_1.z.string().default('mr-rideo-super-secret-key-12345'),
+    JWT_SECRET: zod_1.z.string().default('ride-matching-super-secret-key-12345'),
     NODE_ENV: zod_1.z.enum(['development', 'production', 'test']).default('development'),
     FAST2SMS_API_KEY: zod_1.z.string().optional(),
     CLOUDFLARE_R2_ACCOUNT_ID: zod_1.z.string().optional(),

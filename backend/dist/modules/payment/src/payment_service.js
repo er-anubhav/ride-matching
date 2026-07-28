@@ -43,10 +43,11 @@ class CashPaymentProvider {
             throw new Error(`Unsupported payment type: ${paymentType}`);
         }
         const now = new Date();
+        const isValidUuid = riderId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(riderId);
         const payment = await prisma_1.prisma.payment.create({
             data: {
                 tripId,
-                riderId: riderId || 'TEMP_RIDER',
+                riderId: isValidUuid ? riderId : '00000000-0000-0000-0000-000000000000',
                 amount,
                 method: 'CASH',
                 status: 'PENDING',

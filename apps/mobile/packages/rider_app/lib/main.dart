@@ -14,13 +14,13 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const MrRideoRiderApp(),
+      child: const RideMatchingRiderApp(),
     ),
   );
 }
 
-class MrRideoRiderApp extends ConsumerWidget {
-  const MrRideoRiderApp({super.key});
+class RideMatchingRiderApp extends ConsumerWidget {
+  const RideMatchingRiderApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +38,7 @@ class MrRideoRiderApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'Mr. Rideo',
+      title: 'Ride Matching',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.lightTheme,

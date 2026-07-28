@@ -1,9 +1,9 @@
 <div align="center">
 
-# 🚖 Mr. Rideo — Enterprise Mobility Platform
+# 🚖 Ride Matching — Enterprise Mobility Platform
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=github-actions)](https://github.com/)
-[![Production Readiness](https://img.shields.io/badge/Production%20Readiness-98%25%20Release%20Candidate-emerald?style=for-the-badge&logo=rocket)](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/)
+[![Production Readiness](https://img.shields.io/badge/Production%20Readiness-98%25%20Release%20Candidate-emerald?style=for-the-badge&logo=rocket)](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/)
 [![Flutter](https://img.shields.io/badge/Flutter-3.22%2B-02569B?style=for-the-badge&logo=flutter)](https://flutter.dev)
 [![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react)](https://react.dev)
 [![Node.js](https://img.shields.io/badge/Node.js-20.x-339933?style=for-the-badge&logo=node.js)](https://nodejs.org)
@@ -30,7 +30,7 @@
 
 ## 📌 Executive Overview
 
-**Mr. Rideo** is a high-performance, enterprise-grade mobility platform designed to deliver seamless, transparent, and scalable ride-hailing services across Indian urban centers. Built with a decoupled microservice-inspired architecture, the platform connects passenger mobile clients, driver partner applications, operations admin dashboards, and dynamic dispatch engines in real time.
+**Ride Matching** is a high-performance, enterprise-grade mobility platform designed to deliver seamless, transparent, and scalable ride-hailing services across Indian urban centers. Built with a decoupled microservice-inspired architecture, the platform connects passenger mobile clients, driver partner applications, operations admin dashboards, and dynamic dispatch engines in real time.
 
 ### 🌟 Key Platform Highlights
 - ⚡ **$<1.2\text{s}$ Spatial Matching Engine**: High-concurrency Go service utilizing Redis spatial geo-indexing (`GEOADD`, `GEORADIUS`) for sub-second driver assignment within $3.0\text{ km}$ radiuses.
@@ -90,7 +90,7 @@ flowchart TD
 The repository is structured as a clean monorepo architecture:
 
 ```
-mr-rideo/
+ride-matching/
 ├── apps/
 │   ├── admin/                    # Admin Management Portal (React 18, TS, Tailwind CSS)
 │   └── mobile/
@@ -108,25 +108,25 @@ mr-rideo/
 ## 🚀 Subsystems Breakdown
 
 ### 1. 📱 Rider Mobile Application (`apps/mobile/packages/rider_app`)
-- **State Management**: Clean architecture powered by `flutter_riverpod` state providers ([`ui_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart)).
-- **Booking Flow**: 3-tap ride request sheet with vehicle category picker (Bike, Auto, Economy Cab, Premium Cab) ([`home_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/rider_app/lib/screens/home_screen.dart)).
-- **Maps & Routing**: Custom `OlaMapWidget` with smooth animated vehicle markers and polyline rendering ([`tracking_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/rider_app/lib/screens/tracking_screen.dart)).
+- **State Management**: Clean architecture powered by `flutter_riverpod` state providers ([`ui_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart)).
+- **Booking Flow**: 3-tap ride request sheet with vehicle category picker (Bike, Auto, Economy Cab, Premium Cab) ([`home_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/home_screen.dart)).
+- **Maps & Routing**: Custom `OlaMapWidget` with smooth animated vehicle markers and polyline rendering ([`tracking_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/tracking_screen.dart)).
 
 ### 2. 🚗 Driver Partner Mobile Application (`apps/mobile/packages/driver_app`)
-- **Duty State Machine**: Instant Duty Online/Offline toggle with automatic WebSocket room registration ([`driver_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart)).
+- **Duty State Machine**: Instant Duty Online/Offline toggle with automatic WebSocket room registration ([`driver_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart)).
 - **Trip Lifecycle**: Audio-visual dispatch request modal $\rightarrow$ Turn-by-turn navigation $\rightarrow$ 4-digit passenger PIN verification $\rightarrow$ Trip completion & wallet update.
 - **KYC Onboarding**: Multipart binary upload for Aadhaar, DL, Vehicle RC, and Insurance to Cloudflare R2 bucket.
 
 ### 3. 💻 Admin Operations Portal (`apps/admin`)
-- **Dashboard**: High-density management interface built with React 18, Tailwind CSS, and Lucide React icons ([`Dashboard.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/admin/src/components/Dashboard.tsx)).
-- **Live Dispatch Monitor**: Real-time grid displaying ongoing rides, driver coordinates, and ETA metrics ([`LiveTripMonitor.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/admin/src/components/LiveTripMonitor.tsx)).
-- **City Pricing Matrix**: Vehicle fare configurator with backend PostgreSQL persistence for Delhi (`CITY_DELHI`) ([`PricingConfigurator.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/apps/admin/src/components/PricingConfigurator.tsx)).
+- **Dashboard**: High-density management interface built with React 18, Tailwind CSS, and Lucide React icons ([`Dashboard.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/components/Dashboard.tsx)).
+- **Live Dispatch Monitor**: Real-time grid displaying ongoing rides, driver coordinates, and ETA metrics ([`LiveTripMonitor.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/components/LiveTripMonitor.tsx)).
+- **City Pricing Matrix**: Vehicle fare configurator with backend PostgreSQL persistence for Delhi (`CITY_DELHI`) ([`PricingConfigurator.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/components/PricingConfigurator.tsx)).
 - **CSV Exporter**: One-click export button generating downloadable CSV reports for KYC, payments, and trip ledgers.
 
 ### 4. ⚙️ Fastify Backend API (`backend`)
 - **Framework**: Fastify 4.x written in strict TypeScript.
 - **Data Access**: Prisma 5 ORM interfacing PostgreSQL 16 database.
-- **Authentication**: JWT token authentication with Fast2SMS phone OTP verification ([`modules/auth`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/backend/src/modules/auth)).
+- **Authentication**: JWT token authentication with Fast2SMS phone OTP verification ([`modules/auth`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth)).
 
 ### 5. 🏎️ Go Matching Engine (`matching-engine`)
 - **Language**: Go (Golang 1.22).
@@ -201,17 +201,17 @@ flutter run
 ### Backend Environment Variables (`backend/.env`)
 ```env
 PORT=8080
-DATABASE_URL="postgresql://user:password@localhost:5432/mrrideo_db?schema=public"
+DATABASE_URL="postgresql://user:password@localhost:5432/ridematching_db?schema=public"
 REDIS_URL="redis://localhost:6379"
 JWT_SECRET="super_secret_jwt_key_2026"
 FAST2SMS_API_KEY="your_fast2sms_api_key"
-CLOUDFLARE_R2_BUCKET="mrrideo-kyc-bucket"
+CLOUDFLARE_R2_BUCKET="ridematching-kyc-bucket"
 OLA_MAPS_API_KEY="your_ola_maps_api_key"
 ```
 
 ### Admin Portal Environment Variables (`apps/admin/.env.local`)
 ```env
-REACT_APP_ADMIN_USERNAME=admin_mrrideo_prod
+REACT_APP_ADMIN_USERNAME=admin_ridematching_prod
 REACT_APP_ADMIN_PASSWORD=Secur3_Pr0d_Adm1n_R1de0_2026!
 REACT_APP_API_BASE_URL=http://localhost:8080/api
 ```
@@ -220,24 +220,24 @@ REACT_APP_API_BASE_URL=http://localhost:8080/api
 
 ## 📊 Master Technical Audit Suite
 
-The platform has undergone 11 rigorous, evidence-based technical audits archived in [`audit_reports/`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/):
+The platform has undergone 11 rigorous, evidence-based technical audits archived in [`audit_reports/`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/):
 
 | Audit Report | Scope & Evaluation | Readiness Score | Status | Report Document Link |
 |---|---|---|---|---|
-| **1. QA Smoke Audit** | Startup & 14-Step E2E Production Flow | **Passed** | **Release Candidate** | [`qa_smoke_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/qa_smoke_audit_report.md) |
-| **2. QA Sanity Audit** | Build & Recent Feature Sanity | **Passed** | **Release Candidate** | [`qa_sanity_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/qa_sanity_audit_report.md) |
-| **3. REST API Audit** | End-to-End REST APIs & Contracts | **98%** | **Release Candidate** | [`api_testing_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/api_testing_audit_report.md) |
-| **4. QA Testing Audit** | 25 Testing Phases & 27 Test Types | **92%** | **Release Candidate** | [`qa_testing_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/qa_testing_audit_report.md) |
-| **5. CPO Product Audit** | Product Vision & UX Journeys | **96%** | **Release Candidate** | [`cpo_product_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/cpo_product_audit_report.md) |
-| **6. Mock Data Audit** | Forensics & Code Cleanliness | **98%** | **Release Candidate** | [`mock_data_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/mock_data_audit_report.md) |
-| **7. System Integration Audit** | Distributed Workflows | **98%** | **Release Candidate** | [`system_integration_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/system_integration_audit_report.md) |
-| **8. Backend Service Audit** | Fastify & PostgreSQL | **98%** | **Release Candidate** | [`backend_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/backend_audit_report.md) |
-| **9. Admin Panel Audit** | Admin React Portal | **98%** | **Release Candidate** | [`admin_panel_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/admin_panel_audit_report.md) |
-| **10. Rider App Audit** | Rider Flutter App | **92%** | **Release Candidate** | [`rider_app_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/rider_app_audit_report.md) |
-| **11. Driver App Audit** | Driver Flutter App | **92%** | **Release Candidate** | [`driver_app_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/mr-rideo/audit_reports/driver_app_audit_report.md) |
+| **1. QA Smoke Audit** | Startup & 14-Step E2E Production Flow | **Passed** | **Release Candidate** | [`qa_smoke_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/qa_smoke_audit_report.md) |
+| **2. QA Sanity Audit** | Build & Recent Feature Sanity | **Passed** | **Release Candidate** | [`qa_sanity_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/qa_sanity_audit_report.md) |
+| **3. REST API Audit** | End-to-End REST APIs & Contracts | **98%** | **Release Candidate** | [`api_testing_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/api_testing_audit_report.md) |
+| **4. QA Testing Audit** | 25 Testing Phases & 27 Test Types | **92%** | **Release Candidate** | [`qa_testing_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/qa_testing_audit_report.md) |
+| **5. CPO Product Audit** | Product Vision & UX Journeys | **96%** | **Release Candidate** | [`cpo_product_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/cpo_product_audit_report.md) |
+| **6. Mock Data Audit** | Forensics & Code Cleanliness | **98%** | **Release Candidate** | [`mock_data_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/mock_data_audit_report.md) |
+| **7. System Integration Audit** | Distributed Workflows | **98%** | **Release Candidate** | [`system_integration_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/system_integration_audit_report.md) |
+| **8. Backend Service Audit** | Fastify & PostgreSQL | **98%** | **Release Candidate** | [`backend_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/backend_audit_report.md) |
+| **9. Admin Panel Audit** | Admin React Portal | **98%** | **Release Candidate** | [`admin_panel_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/admin_panel_audit_report.md) |
+| **10. Rider App Audit** | Rider Flutter App | **92%** | **Release Candidate** | [`rider_app_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/rider_app_audit_report.md) |
+| **11. Driver App Audit** | Driver Flutter App | **92%** | **Release Candidate** | [`driver_app_audit_report.md`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/audit_reports/driver_app_audit_report.md) |
 
 ---
 
 ## 📜 License
 
-Copyright © 2026 **Mr. Rideo Platform**. Proprietary & Confidential. All rights reserved.
+Copyright © 2026 **Ride Matching Platform**. Proprietary & Confidential. All rights reserved.

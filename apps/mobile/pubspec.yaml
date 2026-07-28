@@ -1,5 +1,5 @@
-name: mr_rideo_workspace
-description: "Mr. Rideo workspace root"
+name: ride_matching_workspace
+description: "Ride Matching workspace root"
 version: 1.0.0
 publish_to: 'none'
 

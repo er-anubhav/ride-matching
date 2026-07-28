@@ -8,6 +8,7 @@ import {
 import LiveTripMonitor from './LiveTripMonitor';
 import PricingConfigurator from './PricingConfigurator';
 import UserManagement from './UserManagement';
+import OperationsDashboard from './OperationsDashboard';
 
 const API_BASE = '/api/admin';
 
@@ -131,14 +132,15 @@ function RejectModal({ driverName, onConfirm, onCancel }: RejectModalProps) {
 }
 
 /* ---- Derive section from URL ---- */
-function getSectionFromPath(): 'kyc' | 'payments' | 'trips' | 'live-dispatch' | 'pricing' | 'users' {
+function getSectionFromPath(): 'dashboard' | 'kyc' | 'payments' | 'trips' | 'live-dispatch' | 'pricing' | 'users' {
   const path = window.location.pathname.toLowerCase();
   if (path.includes('live-dispatch')) return 'live-dispatch';
   if (path.includes('pricing')) return 'pricing';
   if (path.includes('users')) return 'users';
   if (path.includes('payment')) return 'payments';
   if (path.includes('trip')) return 'trips';
-  return 'kyc'; // default
+  if (path.includes('kyc')) return 'kyc';
+  return 'dashboard'; // default for /dashboard or /
 }
 
 
@@ -203,19 +205,19 @@ export default function Dashboard() {
     fetchKycData();
   };
 
-  /* Fetch data for the current section */
+  /* Fetch data for the current section with auto background polling */
   useEffect(() => {
-    if (section === 'kyc') fetchKycData();
-    else if (section === 'payments') fetchPayments();
-    else fetchTrips();
+    const runFetch = () => {
+      if (section === 'kyc') fetchKycData();
+      else if (section === 'payments') fetchPayments();
+      else if (section === 'trips') fetchTrips();
+    };
+
+    runFetch();
+    const interval = setInterval(runFetch, 5000);
+    return () => clearInterval(interval);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section, token]);
-
-  /* Also eagerly fetch KYC data in background for stat cards */
-  useEffect(() => {
-    fetchKycData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const handleExportCSV = () => {
     let csvRows: string[] = [];
@@ -239,7 +241,7 @@ export default function Dashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `mr_rideo_${section}_report_${Date.now()}.csv`);
+    link.setAttribute('download', `ride_matching_${section}_report_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -252,8 +254,10 @@ export default function Dashboard() {
   };
 
   const completedTrips = trips.filter(t => t.status?.toLowerCase() === 'completed').length;
-  const totalRevenue = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalRevenue = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+  const grossFaresSum = trips.reduce((s, t) => s + (Number(t.finalFare) || Number(t.estimatedFare) || 0), 0);
 
+  if (section === 'dashboard') return <OperationsDashboard />;
   if (section === 'live-dispatch') return <LiveTripMonitor />;
   if (section === 'pricing') return <PricingConfigurator />;
   if (section === 'users') return <UserManagement />;
@@ -309,14 +313,30 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Stats cards */}
+          {/* Stats cards - Contextual per section */}
           <div className="grid grid-cols-[repeat(auto-fit,minmax(175px,1fr))] gap-4 mb-7">
-            {[
-              { label: 'Pending KYC', value: kycData?.total ?? '\u2014' },
-              { label: 'Total Payments', value: payments.length > 0 ? `\u20B9${totalRevenue.toLocaleString('en-IN')}` : '\u2014' },
-              { label: 'Total Trips', value: trips.length > 0 ? trips.length : '\u2014' },
-              { label: 'Completed Trips', value: trips.length > 0 ? completedTrips : '\u2014' },
-            ].map((stat, i) => (
+            {(
+              section === 'kyc'
+                ? [
+                    { label: 'Pending Applications', value: kycData?.total ?? 0, highlight: 'text-amber-600' },
+                    { label: 'Review Status', value: (kycData?.total || 0) > 0 ? 'Action Needed' : 'Up to Date', highlight: 'text-emerald-600' },
+                    { label: 'Applications in Queue', value: kycData?.drivers?.length || 0, highlight: 'text-purple-600' },
+                    { label: 'Verification Engine', value: 'Active', highlight: 'text-blue-600' },
+                  ]
+                : section === 'payments'
+                ? [
+                    { label: 'Total Revenue', value: payments.length > 0 ? `₹${totalRevenue.toLocaleString('en-IN', { maximumFractionDigits: 2 })}` : '₹0', highlight: 'text-emerald-600' },
+                    { label: 'Total Transactions', value: payments.length, highlight: 'text-blue-600' },
+                    { label: 'Average Fare', value: payments.length > 0 ? `₹${Math.round(totalRevenue / payments.length).toLocaleString('en-IN')}` : '₹0', highlight: 'text-purple-600' },
+                    { label: 'Successful Payments', value: payments.filter(p => (p.status || '').toUpperCase() === 'COMPLETED' || (p.status || '').toUpperCase() === 'SUCCESS').length || payments.length, highlight: 'text-amber-600' },
+                  ]
+                : [
+                    { label: 'Total Trips Logged', value: trips.length, highlight: 'text-blue-600' },
+                    { label: 'Completed Rides', value: completedTrips, highlight: 'text-emerald-600' },
+                    { label: 'Gross Fares Value', value: `₹${grossFaresSum.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`, highlight: 'text-purple-600' },
+                    { label: 'Completion Rate', value: `${trips.length > 0 ? Math.round((completedTrips / trips.length) * 100) : 100}%`, highlight: 'text-amber-600' },
+                  ]
+            ).map((stat, i) => (
               <div
                 key={i}
                 className="bg-[var(--surface-raised)] border border-[var(--border)] rounded-[--r-md] px-5 py-[1.125rem] relative overflow-hidden transition-shadow duration-200 hover:shadow-[0_1px_0_rgba(255,255,255,0.9)_inset,0_4px_14px_rgba(0,0,0,0.12),0_2px_4px_rgba(0,0,0,0.08)]"
@@ -324,7 +344,7 @@ export default function Dashboard() {
               >
                 {/* Bevel highlight */}
                 <div className="absolute top-0 left-4 right-4 h-px bg-white/90" />
-                <div className="text-[1.625rem]  text-[var(--text-primary)] tracking-[-0.04em] leading-none mb-0.5">{stat.value}</div>
+                <div className={`text-[1.625rem] font-mono tracking-[-0.04em] leading-none mb-0.5 ${stat.highlight}`}>{stat.value}</div>
                 <div className="text-[0.75rem] text-[var(--text-muted)] font-medium uppercase tracking-[0.05em]">{stat.label}</div>
               </div>
             ))}

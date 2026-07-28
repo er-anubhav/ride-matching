@@ -156,8 +156,8 @@ export async function tripRoutes(server: FastifyInstance) {
 
   const requireDriver = (request: FastifyRequest) => {
     const user = (request as any).user;
-    if (user.role !== 'DRIVER') {
-      throw new Error('Only drivers can perform this action');
+    if (user.role !== 'DRIVER' && user.role !== 'ADMIN') {
+      throw new Error('Only drivers or admins can perform this action');
     }
     return user;
   };

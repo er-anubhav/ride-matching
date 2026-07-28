@@ -16,5 +16,5 @@ export declare class TripService {
     static driverArrived(tripId: string, driverId: string): Promise<TripState>;
     static startTrip(tripId: string, driverId: string, otp: string): Promise<TripState>;
     static completeTrip(tripId: string, driverId: string): Promise<TripState>;
-    static cancelTrip(tripId: string, reason: string, actorId: string): Promise<TripState>;
+    static cancelTrip(tripId: string, reason: string, actorId?: string): Promise<TripState>;
 }

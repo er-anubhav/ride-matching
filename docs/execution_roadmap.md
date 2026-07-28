@@ -1,6 +1,6 @@
-# Mr. Rideo Production Execution Roadmap
+# Ride Matching Production Execution Roadmap
 
-This is the tactical execution plan to take Mr. Rideo from its current functional prototype state to a production-ready system capable of handling a real-world pilot in a single city with paying users. 
+This is the tactical execution plan to take Ride Matching from its current functional prototype state to a production-ready system capable of handling a real-world pilot in a single city with paying users. 
 
 **Core Directive:** We are optimizing for time-to-market. No overengineering. No rewrites. We fix what is broken, replace the mocks with real integrations, and ship.
 

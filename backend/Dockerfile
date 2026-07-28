@@ -48,5 +48,5 @@ ENV PORT=8080
 
 EXPOSE 8080
 
-# Run Prisma migration deployment on startup & start Fastify server
-CMD ["sh", "-c", "npx prisma migrate deploy && npm start"]
+# Run Prisma database push & start Fastify server
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start"]

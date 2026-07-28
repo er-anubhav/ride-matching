@@ -175,24 +175,25 @@ class TripService {
         const rider = await prisma_1.prisma.user.findUnique({ where: { id: updatedTrip.riderId } });
         const trip = mapTripToState(updatedTrip, rider);
         // Create payment record for cash payment
-        const paymentId = await payment_service_1.CashPaymentProvider.instance.createPayment(tripId, Number(dbTrip.estimatedFare), 'CASH');
+        const paymentId = await payment_service_1.CashPaymentProvider.instance.createPayment(tripId, Number(dbTrip.estimatedFare), 'CASH', dbTrip.riderId);
         // Emit trip.completed event
         event_bus_1.eventBus.emit('trip.completed', trip);
         // Set driver back to ONLINE
         await redis_1.redisClient.hset(`driver:data:${driverId}`, { status: 'ONLINE' });
         // Background Job: Process receipt and notify rider
         await queues_1.receiptQueue.add('generate-receipt', { tripId, paymentId });
-        notification_1.FcmService.sendPushNotification(trip.riderId, 'Trip Completed', 'Your trip has ended. Thank you for riding with Mr. Rideo!', { tripId }).catch(e => logger_1.logger.error(e));
+        notification_1.FcmService.sendPushNotification(trip.riderId, 'Trip Completed', 'Your trip has ended. Thank you for riding with Ride Matching!', { tripId }).catch(e => logger_1.logger.error(e));
         return trip;
     }
     static async cancelTrip(tripId, reason, actorId) {
+        const isValidUuid = actorId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(actorId);
         let dbTrip;
         try {
             dbTrip = await prisma_1.prisma.trip.update({
                 where: { id: tripId },
                 data: {
                     status: 'CANCELLED',
-                    cancelledBy: actorId,
+                    cancelledBy: isValidUuid ? actorId : null,
                     cancellationReason: reason,
                 },
             });

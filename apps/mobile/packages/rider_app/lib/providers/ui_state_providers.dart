@@ -42,7 +42,7 @@ final routeMetricsProvider = FutureProvider<RouteMetrics?>((ref) async {
     final response = await http.post(
       Uri.parse(directionsUrl),
       headers: {
-        'X-Request-Id': 'mr-rideo-${DateTime.now().millisecondsSinceEpoch}',
+        'X-Request-Id': 'ride-matching-${DateTime.now().millisecondsSinceEpoch}',
       },
     ).timeout(const Duration(seconds: 5));
 
@@ -764,7 +764,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
   }
 
   Future<void> matchDriver() async {
-    final vName = state.vehicleName ?? "Mr. Rideo Bike";
+    final vName = state.vehicleName ?? "Ride Matching Bike";
     String vNum = "UP 32 BK 1234";
     String eta = state.driverArrivalEta ?? "3 mins";
     String vModel = "Bajaj Pulsar 150";
