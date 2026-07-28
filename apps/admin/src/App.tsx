@@ -5,8 +5,8 @@ import Dashboard from './components/Dashboard';
 import { useAuth } from './hooks/useAuth';
 import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
-const DEFAULT_USERNAME = process.env.REACT_APP_ADMIN_USERNAME || 'admin';
-const DEFAULT_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'admin123';
+const DEFAULT_USERNAME = process.env.REACT_APP_ADMIN_USERNAME || '';
+const DEFAULT_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || '';
 
 function App() {
   const { user, login, logout, isAuthenticated } = useAuth();

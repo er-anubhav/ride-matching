@@ -23,8 +23,6 @@ exports.receiptWorker = new bullmq_1.Worker('receipt-queue', async (job) => {
     const rider = await prisma_1.prisma.user.findUnique({
         where: { id: trip.riderId },
     });
-    // Simulate heavy PDF generation or API call to email provider
-    await new Promise((resolve) => setTimeout(resolve, 2000));
     logger_1.logger.info({
         tripId,
         riderEmail: rider?.email || 'unknown@example.com',

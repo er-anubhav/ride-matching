@@ -20,7 +20,7 @@ dependencies:
   # Local shared package
   shared:
     path: ../shared
-  webview_flutter: ^4.10.0
+  maplibre_gl: ^0.26.2
   http: ^1.2.0
 
 flutter:

@@ -9,9 +9,9 @@ class SmsService {
      * If USE_MOCK_OTP is enabled or FAST2SMS_API_KEY is missing, it will bypass sending and log the OTP.
      */
     static async sendOtp(phone, otp) {
-        if (config_1.config.USE_MOCK_OTP || !config_1.config.FAST2SMS_API_KEY) {
-            logger_1.logger.info({ phone, otp }, 'Mock OTP triggered or missing API key, skipping real SMS dispatch');
-            return true;
+        if (!config_1.config.FAST2SMS_API_KEY) {
+            logger_1.logger.error({ phone }, 'FAST2SMS_API_KEY is not configured in environment variables');
+            return false;
         }
         try {
             // Fast2SMS API integration

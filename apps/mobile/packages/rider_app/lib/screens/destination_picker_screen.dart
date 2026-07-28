@@ -33,14 +33,15 @@ class OlaPrediction {
       description: json['description'] ?? '',
       title: structured['main_text'] ?? '',
       subtitle: structured['secondary_text'] ?? '',
-      latitude: (location['lat'] as num?)?.toDouble() ?? 26.8500,
-      longitude: (location['lng'] as num?)?.toDouble() ?? 80.9400,
+      latitude: (location['lat'] as num?)?.toDouble() ?? 0.0,
+      longitude: (location['lng'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
 
 class DestinationPickerScreen extends ConsumerStatefulWidget {
-  const DestinationPickerScreen({super.key});
+  final String? saveTag;
+  const DestinationPickerScreen({super.key, this.saveTag});
 
   @override
   ConsumerState<DestinationPickerScreen> createState() => _DestinationPickerScreenState();
@@ -54,50 +55,24 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
   bool _isLoading = false;
   Timer? _debounceTimer;
 
-  final List<OlaPrediction> _fallbackLocations = [
-    OlaPrediction(
-      description: "Chaudhary Charan Singh International Airport (LKO), Lucknow, Uttar Pradesh",
-      title: "Chaudhary Charan Singh International Airport (LKO)",
-      subtitle: "Lucknow, Uttar Pradesh",
-      latitude: 26.7606,
-      longitude: 80.8893,
-    ),
-    OlaPrediction(
-      description: "Summit Building, Vibhuti Khand, Gomti Nagar, Lucknow, Uttar Pradesh",
-      title: "Summit Building",
-      subtitle: "Vibhuti Khand, Gomti Nagar, Lucknow",
-      latitude: 26.8640,
-      longitude: 80.9995,
-    ),
-    OlaPrediction(
-      description: "Palassio Mall, Amar Shaheed Path, Lucknow, Uttar Pradesh",
-      title: "Palassio Mall",
-      subtitle: "Amar Shaheed Path, Lucknow",
-      latitude: 26.8015,
-      longitude: 81.0232,
-    ),
-    OlaPrediction(
-      description: "Hazratganj Metro Station, Lucknow, Uttar Pradesh",
-      title: "Hazratganj Metro Station",
-      subtitle: "Lucknow, Uttar Pradesh",
-      latitude: 26.8512,
-      longitude: 80.9443,
-    ),
-    OlaPrediction(
-      description: "Phoenix United Mall, Alambagh, Lucknow, Uttar Pradesh",
-      title: "Phoenix United Mall",
-      subtitle: "Alambagh, Lucknow",
-      latitude: 26.8016,
-      longitude: 80.9022,
-    ),
-    OlaPrediction(
-      description: "Lulu Mall Lucknow, Golf City, Lucknow, Uttar Pradesh",
-      title: "Lulu Mall Lucknow",
-      subtitle: "Golf City, Lucknow",
-      latitude: 26.7820,
-      longitude: 81.0110,
-    ),
-  ];
+  void _handleLocationSelected(String address, double lat, double lng) {
+    FocusScope.of(context).unfocus();
+    final tag = widget.saveTag;
+
+    if (tag != null && tag.isNotEmpty) {
+      if (tag == 'Other') {
+        _showAddBookmarkDialog(context, address, lat, lng);
+      } else {
+        ref.read(bookmarksProvider.notifier).addBookmark(tag, address, lat, lng);
+        context.pop();
+      }
+    } else {
+      ref.read(locationProvider.notifier).setDestination(address, lat, lng);
+      ref.read(searchHistoryProvider.notifier).addHistory(address, lat, lng);
+      context.push('/ride-summary');
+    }
+  }
+
 
   @override
   void initState() {
@@ -178,12 +153,8 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
   }
 
   void _useFallback(String query) {
-    final filtered = _fallbackLocations
-        .where((loc) => loc.description.toLowerCase().contains(query.toLowerCase()) ||
-                        loc.title.toLowerCase().contains(query.toLowerCase()))
-        .toList();
     setState(() {
-      _suggestions = filtered;
+      _suggestions = [];
       _isLoading = false;
     });
   }
@@ -233,12 +204,6 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
             onPressed: () {
               ref.read(bookmarksProvider.notifier).addBookmark(controller.text, address, lat, lng);
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Added ${controller.text} to bookmarks!"),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
             },
             child: Text(
               "Save",
@@ -335,7 +300,6 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
                             onChanged: _onSearchChanged,
                             onSubmitted: (value) {
                               if (value.trim().length >= 4) {
-                                FocusScope.of(context).unfocus();
                                 final address = value.trim();
                                 double lat = 26.8500;
                                 double lng = 80.9400;
@@ -343,14 +307,14 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
                                   lat = _suggestions.first.latitude;
                                   lng = _suggestions.first.longitude;
                                 }
-                                ref.read(locationProvider.notifier).setDestination(address, lat, lng);
-                                ref.read(searchHistoryProvider.notifier).addHistory(address, lat, lng);
-                                context.push('/ride-summary');
+                                _handleLocationSelected(address, lat, lng);
                               }
                             },
                             decoration: InputDecoration(
                               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                              hintText: "Where to?",
+                              hintText: widget.saveTag != null && widget.saveTag!.isNotEmpty
+                                  ? "Search address for ${widget.saveTag}..."
+                                  : "Where to?",
                               fillColor: AppColors.surface,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -448,43 +412,71 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
                 separatorBuilder: (context, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final bookmark = bookmarks[index];
-                  return GestureDetector(
-                    onTap: () {
-                      FocusScope.of(context).unfocus();
-                      ref.read(locationProvider.notifier).setDestination(
-                            bookmark.address,
-                            bookmark.latitude,
-                            bookmark.longitude,
-                          );
-                      ref.read(searchHistoryProvider.notifier).addHistory(
-                            bookmark.address,
-                            bookmark.latitude,
-                            bookmark.longitude,
-                          );
-                      context.push('/ride-summary');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: AppColors.surfaceCard,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: AppColors.border),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(LucideIcons.bookmark, size: 12, color: AppColors.primary),
-                          const SizedBox(width: 6),
-                          Text(
-                            bookmark.label,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              color: AppColors.textPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
+                  final labelLower = bookmark.label.toLowerCase();
+                  IconData iconData = LucideIcons.bookmark;
+                  if (labelLower == 'home') iconData = LucideIcons.home;
+                  if (labelLower == 'work') iconData = LucideIcons.briefcase;
+                  if (labelLower == 'gym') iconData = LucideIcons.dumbbell;
+
+                  return Container(
+                    padding: const EdgeInsets.only(left: 10, right: 4, top: 4, bottom: 4),
+                    decoration: BoxDecoration(
+                      color: AppColors.surfaceCard,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            FocusScope.of(context).unfocus();
+                            ref.read(locationProvider.notifier).setDestination(
+                                  bookmark.address,
+                                  bookmark.latitude,
+                                  bookmark.longitude,
+                                );
+                            ref.read(searchHistoryProvider.notifier).addHistory(
+                                  bookmark.address,
+                                  bookmark.latitude,
+                                  bookmark.longitude,
+                                );
+                            context.push('/ride-summary');
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(iconData, size: 13, color: AppColors.primary),
+                              const SizedBox(width: 6),
+                              Text(
+                                bookmark.label,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w300,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(width: 4),
+                        GestureDetector(
+                          onTap: () {
+                            ref.read(bookmarksProvider.notifier).removeBookmark(bookmark.id ?? bookmark.address);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Removed ${bookmark.label} from saved places"),
+                                backgroundColor: AppColors.textSecondary,
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(LucideIcons.x, size: 14, color: AppColors.textMuted),
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -495,15 +487,7 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
 
           Expanded(
             child: recentHistory.isEmpty
-                ? ListView(
-                    children: [
-                      _buildSuggestionTile(_fallbackLocations[0]),
-                       Divider(color: AppColors.border, height: 1),
-                       _buildSuggestionTile(_fallbackLocations[1]),
-                       Divider(color: AppColors.border, height: 1),
-                       _buildSuggestionTile(_fallbackLocations[2]),
-                    ],
-                  )
+                ? const SizedBox.shrink()
                 : ListView.separated(
                     itemCount: recentHistory.length,
                      separatorBuilder: (context, index) => Divider(color: AppColors.border, height: 1),
@@ -511,18 +495,7 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
                       final item = recentHistory[index];
                       return ListTile(
                         onTap: () {
-                          FocusScope.of(context).unfocus();
-                          ref.read(locationProvider.notifier).setDestination(
-                                item.address,
-                                item.latitude,
-                                item.longitude,
-                              );
-                          ref.read(searchHistoryProvider.notifier).addHistory(
-                                item.address,
-                                item.latitude,
-                                item.longitude,
-                              );
-                          context.push('/ride-summary');
+                          _handleLocationSelected(item.address, item.latitude, item.longitude);
                         },
                         dense: true,
                         contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
@@ -584,10 +557,7 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
             text: "Choose on Map",
             icon: const Icon(LucideIcons.map, size: 18, color: AppColors.primary),
             onPressed: () {
-              FocusScope.of(context).unfocus();
-              ref.read(locationProvider.notifier).setDestination("Selected Custom Location", 26.8500, 80.9400);
-              ref.read(searchHistoryProvider.notifier).addHistory("Selected Custom Location", 26.8500, 80.9400);
-              context.push('/ride-summary');
+              _handleLocationSelected("Selected Custom Location", 26.8500, 80.9400);
             },
           ),
         ],
@@ -598,18 +568,11 @@ class _DestinationPickerScreenState extends ConsumerState<DestinationPickerScree
   Widget _buildSuggestionTile(OlaPrediction prediction) {
     return ListTile(
       onTap: () {
-        FocusScope.of(context).unfocus();
-        ref.read(locationProvider.notifier).setDestination(
-              prediction.description,
-              prediction.latitude,
-              prediction.longitude,
-            );
-        ref.read(searchHistoryProvider.notifier).addHistory(
-              prediction.description,
-              prediction.latitude,
-              prediction.longitude,
-            );
-        context.push('/ride-summary');
+        _handleLocationSelected(
+          prediction.description,
+          prediction.latitude,
+          prediction.longitude,
+        );
       },
       dense: true,
       contentPadding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),

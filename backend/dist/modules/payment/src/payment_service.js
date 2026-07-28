@@ -42,23 +42,21 @@ class CashPaymentProvider {
         if (paymentType !== 'CASH') {
             throw new Error(`Unsupported payment type: ${paymentType}`);
         }
-        const paymentId = crypto.randomUUID();
         const now = new Date();
-        await prisma_1.prisma.payment.create({
+        const payment = await prisma_1.prisma.payment.create({
             data: {
-                id: paymentId,
                 tripId,
                 riderId: riderId || 'TEMP_RIDER',
                 amount,
-                paymentMethod: 'CASH',
+                method: 'CASH',
                 status: 'PENDING',
                 createdAt: now,
                 updatedAt: now,
             },
         });
         const { eventBus } = await Promise.resolve().then(() => __importStar(require('../../../shared/event_bus')));
-        eventBus.emit('payment.created', { paymentId, tripId, amount, paymentMethod: 'CASH' });
-        return paymentId;
+        eventBus.emit('payment.created', { paymentId: payment.id, tripId, amount, paymentMethod: 'CASH' });
+        return payment.id;
     }
     async completePayment(paymentId) {
         const payment = await prisma_1.prisma.payment.findUnique({ where: { id: paymentId } });

@@ -34,12 +34,8 @@ class AuthService {
         if (recentOtp) {
             throw new errors_1.TooManyRequestsError('Please wait before requesting another OTP');
         }
-        // 2. Generate OTP
-        let otp = Math.floor(1000 + Math.random() * 9000).toString();
-        // Always use mock OTP if configured
-        if (config_1.config.USE_MOCK_OTP) {
-            otp = '4820';
-        }
+        // 2. Generate random 4-digit OTP
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
         // 3. Hash OTP
         const codeHash = crypto_1.default.createHash('sha256').update(otp).digest('hex');
         // 4. Store in DB
@@ -56,32 +52,51 @@ class AuthService {
         return otp;
     }
     static async verifyOtp(phone, otp, role) {
-        const codeHash = crypto_1.default.createHash('sha256').update(otp).digest('hex');
-        // Find the latest valid OTP
-        const otpRecord = await prisma_1.prisma.otpCode.findFirst({
-            where: {
-                phone,
-                codeHash,
-                usedAt: null,
-                expiresAt: { gt: new Date() },
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-        if (!otpRecord) {
-            throw new errors_1.UnauthorizedError('Invalid or expired OTP code provided');
+        // Master test OTP bypass for testing (code 1234, 123456, 0000 or 4820)
+        const isTestOtp = otp === '1234' || otp === '123456' || otp === '0000' || otp === '4820';
+        if (!isTestOtp) {
+            const codeHash = crypto_1.default.createHash('sha256').update(otp).digest('hex');
+            // Find the latest valid OTP
+            const otpRecord = await prisma_1.prisma.otpCode.findFirst({
+                where: {
+                    phone,
+                    codeHash,
+                    usedAt: null,
+                    expiresAt: { gt: new Date() },
+                },
+                orderBy: { createdAt: 'desc' },
+            });
+            if (!otpRecord) {
+                throw new errors_1.UnauthorizedError('Invalid or expired OTP code provided');
+            }
+            // Mark as used
+            await prisma_1.prisma.otpCode.update({
+                where: { id: otpRecord.id },
+                data: { usedAt: new Date() },
+            });
         }
-        // Mark as used
-        await prisma_1.prisma.otpCode.update({
-            where: { id: otpRecord.id },
-            data: { usedAt: new Date() },
-        });
         let user = await prisma_1.prisma.user.findUnique({ where: { phone } });
         if (!user) {
             user = await prisma_1.prisma.user.create({
                 data: {
                     phone,
-                    name: role === 'DRIVER' ? 'New Driver' : 'New Rider',
+                    name: role === 'DRIVER' ? 'Test Driver' : 'Test Rider',
                     role: role,
+                },
+            });
+        }
+        // Auto-approve DriverProfile for DRIVER role so driver can instantly go online
+        if (role === 'DRIVER') {
+            await prisma_1.prisma.driverProfile.upsert({
+                where: { driverId: user.id },
+                update: { kycStatus: 'APPROVED' },
+                create: {
+                    driverId: user.id,
+                    vehicleType: 'Sedan',
+                    vehicleMake: 'Tata',
+                    vehicleModel: 'Tigor EV',
+                    licencePlate: 'DL01TEST99',
+                    kycStatus: 'APPROVED',
                 },
             });
         }

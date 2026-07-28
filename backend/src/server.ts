@@ -89,6 +89,8 @@ export async function createServer() {
   await server.register(authRoutes);
   await server.register(tripRoutes);
   await server.register((await import('./modules/kyc')).kycRoutes);
+  await server.register((await import('./modules/user_api')).userApiRoutes);
+  await server.register((await import('./modules/driver_api')).driverApiRoutes);
 
   // Register Ride Tracking WebSocket handler
   server.route({

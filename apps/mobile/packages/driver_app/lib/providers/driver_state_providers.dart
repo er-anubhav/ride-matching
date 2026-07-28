@@ -42,6 +42,7 @@ class DriverState {
   final String? vehicleModel;
   final String? vehicleNumber;
   final String? upiId;
+  final double? rating;
   
   // Coordinates
   final double driverLat;
@@ -80,6 +81,7 @@ class DriverState {
     this.vehicleModel,
     this.vehicleNumber,
     this.upiId,
+    this.rating,
     required this.driverLat,
     required this.driverLng,
     this.startLat,
@@ -111,6 +113,7 @@ class DriverState {
     String? vehicleModel,
     String? vehicleNumber,
     String? upiId,
+    double? rating,
     double? driverLat,
     double? driverLng,
     double? startLat,
@@ -143,6 +146,7 @@ class DriverState {
       vehicleModel: vehicleModel ?? this.vehicleModel,
       vehicleNumber: vehicleNumber ?? this.vehicleNumber,
       upiId: upiId ?? this.upiId,
+      rating: rating ?? this.rating,
       driverLat: driverLat ?? this.driverLat,
       driverLng: driverLng ?? this.driverLng,
       startLat: startLat ?? this.startLat,
@@ -182,14 +186,15 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
       : super(DriverState(
           dutyStatus: DriverDutyStatus.offline,
           kycStatus: KycStatus.notStarted,
-          driverLat: 26.8500, // Lucknow default coordinates
-          driverLng: 80.9400,
+          driverLat: 0.0,
+          driverLng: 0.0,
           earnings: 0.0,
           tripsCompletedCount: 0,
           earningsHistory: [],
           activeRoutePoints: [],
         )) {
     _initLocation();
+    _fetchProfile();
   }
 
   void _initLocation() async {
@@ -255,7 +260,24 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
     } catch (e) {
       debugPrint("Error initializing geolocator in driver: $e");
     }
+  }
 
+  Future<void> _fetchProfile() async {
+    try {
+      final response = await ApiClient().get('/driver/profile');
+      if (response != null && response['status'] == 'success' && response['profile'] != null) {
+        final profile = response['profile'];
+        state = state.copyWith(
+          vehicleMake: profile['vehicleMake'] as String?,
+          vehicleModel: profile['vehicleModel'] as String?,
+          vehicleNumber: profile['vehicleNumber'] as String?,
+          upiId: profile['upiId'] as String?,
+          rating: (profile['rating'] as num?)?.toDouble(),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error fetching driver profile: $e");
+    }
   }
 
   void setVehicleDetails(String make, String model, String number) {
@@ -265,12 +287,24 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
       vehicleNumber: number,
       kycStatus: KycStatus.docsPending,
     );
+    ApiClient().put('/driver/profile', {
+      'vehicleMake': make,
+      'vehicleModel': model,
+      'vehicleNumber': number,
+    }).catchError((_) {});
   }
 
-  void submitKycDocuments() {
+  Future<void> submitKycDocuments() async {
     state = state.copyWith(
       kycStatus: KycStatus.underReview,
     );
+    try {
+      await ApiClient().post('/driver/kyc/documents', {
+        'vehicleMake': state.vehicleMake,
+        'vehicleModel': state.vehicleModel,
+        'vehicleNumber': state.vehicleNumber,
+      });
+    } catch (_) {}
   }
 
   void approveKyc() {
@@ -281,6 +315,7 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
 
   void updateUpiId(String upi) {
     state = state.copyWith(upiId: upi);
+    ApiClient().put('/driver/profile', {'upiId': upi}).catchError((_) {});
   }
 
   void toggleDutyStatus() {
@@ -304,11 +339,19 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
 
   Future<void> _connectWebSocket() async {
     try {
-      final host = (!kIsWeb && Platform.isAndroid) ? '10.0.2.2' : 'localhost';
-      final wsUrl = 'ws://$host:8080/ride-tracking';
+      final baseApi = ApiClient().baseUrl;
+      String wsUrl = 'ws://222.167.207.239:8080/ride-tracking';
+      try {
+        final uri = Uri.parse(baseApi);
+        if (uri.host.isNotEmpty) {
+          final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
+          final portStr = uri.hasPort ? ':${uri.port}' : '';
+          wsUrl = '$scheme://${uri.host}$portStr/ride-tracking';
+        }
+      } catch (_) {}
       final token = await ApiClient().getToken();
       final headers = token != null ? {'Authorization': 'Bearer $token'} : null;
-      _webSocket = await WebSocket.connect(wsUrl, headers: headers).timeout(const Duration(seconds: 3));
+      _webSocket = await WebSocket.connect(wsUrl, headers: headers).timeout(const Duration(seconds: 4));
       
       if (!mounted) return;
       state = state.copyWith(webSocketStatus: WebSocketStatus.connected);
@@ -335,12 +378,13 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
       );
 
       // Register driver with WebSocket
+      final vehicleName = [state.vehicleMake, state.vehicleModel].where((s) => s != null && s.isNotEmpty).join(' ');
       final regMsg = jsonEncode({
         'type': 'register_driver',
         'driverLat': state.driverLat,
         'driverLng': state.driverLng,
-        'vehicleNumber': state.vehicleNumber ?? 'UP32-AB-9999',
-        'vehicleName': '${state.vehicleMake ?? "Maruti"} ${state.vehicleModel ?? "Swift"}',
+        'vehicleNumber': state.vehicleNumber ?? '',
+        'vehicleName': vehicleName,
       });
       _webSocket!.add(regMsg);
 
@@ -352,7 +396,13 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
 
   void _handleWebSocketDisconnect() {
     if (!mounted) return;
-    state = state.copyWith(webSocketStatus: WebSocketStatus.connectionError);
+    _cancelSimulation();
+    _cancelCountdown();
+    _closeWebSocket();
+    state = state.copyWith(
+      dutyStatus: DriverDutyStatus.offline,
+      webSocketStatus: WebSocketStatus.disconnected,
+    );
   }
 
   void _closeWebSocket() {
@@ -362,19 +412,18 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
 
   void _handleWebSocketMessage(Map<String, dynamic> data) {
     if (data['type'] == 'incoming_dispatch') {
-      // Simulate dispatcher dispatching a ride request to this online driver
       receiveIncomingRequest(
         tripId: data['tripId'] as String?,
-        riderName: data['riderName'] ?? "Ramesh Kumar",
-        riderPhone: data['riderPhone'] ?? "+91 98765 43210",
-        pickupAddress: data['pickupAddress'] ?? "Hazratganj, Lucknow",
-        dropoffAddress: data['dropoffAddress'] ?? "Lucknow Airport (LKO)",
-        pickupLat: (data['pickupLat'] as num?)?.toDouble() ?? 26.8580,
-        pickupLng: (data['pickupLng'] as num?)?.toDouble() ?? 80.9350,
-        dropoffLat: (data['dropoffLat'] as num?)?.toDouble() ?? 26.7606,
-        dropoffLng: (data['dropoffLng'] as num?)?.toDouble() ?? 80.8893,
-        price: (data['price'] as num?)?.toDouble() ?? 420.0,
-        otp: data['otp'] ?? "4820",
+        riderName: data['riderName'] as String? ?? "Passenger",
+        riderPhone: data['riderPhone'] as String? ?? "",
+        pickupAddress: data['pickupAddress'] as String? ?? "Pickup Point",
+        dropoffAddress: data['dropoffAddress'] as String? ?? "Dropoff Location",
+        pickupLat: (data['pickupLat'] as num?)?.toDouble() ?? state.driverLat,
+        pickupLng: (data['pickupLng'] as num?)?.toDouble() ?? state.driverLng,
+        dropoffLat: (data['dropoffLat'] as num?)?.toDouble() ?? state.driverLat,
+        dropoffLng: (data['dropoffLng'] as num?)?.toDouble() ?? state.driverLng,
+        price: (data['price'] as num?)?.toDouble() ?? 0.0,
+        otp: data['otp'] as String? ?? "",
       );
     }
   }
@@ -489,38 +538,6 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
     }
 
     state = state.copyWith(activeRoutePoints: polyPoints);
-
-    // Animate traversal to pickup over 5 steps
-    const totalSteps = 5;
-    _simStep = 0;
-    _cancelSimulation();
-
-    _simulationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _simStep++;
-      double newLat;
-      double newLng;
-
-      if (polyPoints.isNotEmpty) {
-        final int index = (_simStep * (polyPoints.length - 1) / totalSteps).round();
-        final clampedIndex = index.clamp(0, polyPoints.length - 1);
-        newLat = polyPoints[clampedIndex][0];
-        newLng = polyPoints[clampedIndex][1];
-      } else {
-        // Fallback straight line
-        final startLat = state.startLat ?? state.driverLat;
-        final startLng = state.startLng ?? state.driverLng;
-        newLat = startLat + (((state.pickupLat! - startLat) / totalSteps) * _simStep);
-        newLng = startLng + (((state.pickupLng! - startLng) / totalSteps) * _simStep);
-      }
-
-      state = state.copyWith(driverLat: newLat, driverLng: newLng);
-      sendLocationUpdate(newLat, newLng);
-
-      if (_simStep >= totalSteps) {
-        timer.cancel();
-        state = state.copyWith(dutyStatus: DriverDutyStatus.arrivedAtPickup);
-      }
-    });
   }
 
   void arrivedAtPickup() {
@@ -635,39 +652,6 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
     }
 
     state = state.copyWith(activeRoutePoints: polyPoints);
-
-    // Animate en route to dropoff over 5 steps
-    const totalSteps = 5;
-    _simStep = 0;
-    _cancelSimulation();
-
-    _simulationTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _simStep++;
-      double newLat;
-      double newLng;
-
-      if (polyPoints.isNotEmpty) {
-        final int index = (_simStep * (polyPoints.length - 1) / totalSteps).round();
-        final clampedIndex = index.clamp(0, polyPoints.length - 1);
-        newLat = polyPoints[clampedIndex][0];
-        newLng = polyPoints[clampedIndex][1];
-      } else {
-        // Fallback straight line
-        final startLat = state.startLat ?? state.driverLat;
-        final startLng = state.startLng ?? state.driverLng;
-        newLat = startLat + (((state.dropoffLat! - startLat) / totalSteps) * _simStep);
-        newLng = startLng + (((state.dropoffLng! - startLng) / totalSteps) * _simStep);
-      }
-
-      state = state.copyWith(driverLat: newLat, driverLng: newLng);
-      sendLocationUpdate(newLat, newLng);
-
-      if (_simStep >= totalSteps) {
-        timer.cancel();
-        endTrip();
-      }
-    });
-
     return true;
   }
 

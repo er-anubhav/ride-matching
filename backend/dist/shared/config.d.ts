@@ -11,7 +11,6 @@ declare const configSchema: z.ZodObject<{
     CLOUDFLARE_R2_SECRET_ACCESS_KEY: z.ZodOptional<z.ZodString>;
     CLOUDFLARE_R2_BUCKET_NAME: z.ZodOptional<z.ZodString>;
     OLA_MAPS_API_KEY: z.ZodOptional<z.ZodString>;
-    USE_MOCK_OTP: z.ZodEffects<z.ZodDefault<z.ZodBoolean>, boolean, unknown>;
     ENABLE_RATE_LIMIT: z.ZodEffects<z.ZodDefault<z.ZodBoolean>, boolean, unknown>;
     DEFAULT_CITY_ID: z.ZodDefault<z.ZodOptional<z.ZodString>>;
     ENABLE_DEFAULT_CITY: z.ZodEffects<z.ZodDefault<z.ZodBoolean>, boolean, unknown>;
@@ -25,7 +24,6 @@ declare const configSchema: z.ZodObject<{
     HOST: string;
     JWT_SECRET: string;
     NODE_ENV: "development" | "production" | "test";
-    USE_MOCK_OTP: boolean;
     ENABLE_RATE_LIMIT: boolean;
     DEFAULT_CITY_ID: string;
     ENABLE_DEFAULT_CITY: boolean;
@@ -53,7 +51,6 @@ declare const configSchema: z.ZodObject<{
     CLOUDFLARE_R2_SECRET_ACCESS_KEY?: string | undefined;
     CLOUDFLARE_R2_BUCKET_NAME?: string | undefined;
     OLA_MAPS_API_KEY?: string | undefined;
-    USE_MOCK_OTP?: unknown;
     ENABLE_RATE_LIMIT?: unknown;
     DEFAULT_CITY_ID?: string | undefined;
     ENABLE_DEFAULT_CITY?: unknown;
@@ -68,7 +65,6 @@ export declare const config: {
     HOST: string;
     JWT_SECRET: string;
     NODE_ENV: "development" | "production" | "test";
-    USE_MOCK_OTP: boolean;
     ENABLE_RATE_LIMIT: boolean;
     DEFAULT_CITY_ID: string;
     ENABLE_DEFAULT_CITY: boolean;

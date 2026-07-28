@@ -6,6 +6,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
 
 import '../providers/driver_state_providers.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/ola_map_widget.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -13,6 +14,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && AppColors.isDark);
     final state = ref.watch(driverStateProvider);
     final notifier = ref.read(driverStateProvider.notifier);
 
@@ -39,6 +43,7 @@ class HomeScreen extends ConsumerWidget {
               centerLat: state.driverLat,
               centerLng: state.driverLng,
               zoom: 18.0,
+              isDark: isDark,
             ),
           ),
 
@@ -62,20 +67,9 @@ class HomeScreen extends ConsumerWidget {
             ),
           ),
 
-
-
-          // 4. WebSocket Status Banner
-          if (state.dutyStatus != DriverDutyStatus.offline)
-            Positioned(
-              top: 120,
-              left: 20,
-              right: 20,
-              child: _buildWebSocketBanner(state.webSocketStatus),
-            ),
-
-          // 5. Top Metrics Panel
+          // 4. Top Metrics Panel
           Positioned(
-            top: state.dutyStatus != DriverDutyStatus.offline ? 176 : 120,
+            top: 120,
             left: 20,
             right: 20,
             child: _buildTopMetricsPanel(state),
@@ -103,62 +97,7 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildWebSocketBanner(WebSocketStatus status) {
-    if (status == WebSocketStatus.connected) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F3A2E).withOpacity(0.9),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.success.withOpacity(0.4)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.wifi, color: AppColors.success, size: 16),
-            const SizedBox(width: 8),
-            Text(
-              "Connected to Real-Time Dispatch System",
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
 
-    final isConnecting = status == WebSocketStatus.connecting;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: isConnecting ? const Color(0xFF332001).withOpacity(0.9) : const Color(0xFF3D1313).withOpacity(0.9),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isConnecting ? AppColors.warning.withOpacity(0.4) : AppColors.error.withOpacity(0.4)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 14,
-            height: 14,
-            child: isConnecting
-                ? CircularProgressIndicator(strokeWidth: 2, color: AppColors.warning)
-                : Icon(LucideIcons.wifiOff, color: AppColors.error, size: 14),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            isConnecting ? "Connecting to dispatch server..." : "Disconnected. Offline mode fallback.",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildTopMetricsPanel(DriverState state) {
     return GlassCard(
@@ -177,7 +116,11 @@ class HomeScreen extends ConsumerWidget {
             height: 32,
             child: VerticalDivider(color: AppColors.border, width: 1),
           ),
-          _buildMetricColumn("Rating", "4.9 ★", LucideIcons.star),
+          _buildMetricColumn(
+            "Rating",
+            state.rating != null ? "${state.rating!.toStringAsFixed(1)} ★" : "5.0 ★",
+            LucideIcons.star,
+          ),
         ],
       ),
     );
@@ -429,73 +372,84 @@ class DriverDrawer extends ConsumerWidget {
     final state = ref.watch(driverStateProvider);
 
     return Drawer(
-      backgroundColor: AppColors.background,
-      child: SafeArea(
-        child: Column(
-          children: [
-            // Drawer Header
-            UserAccountsDrawerHeader(
-              decoration: const BoxDecoration(color: Colors.transparent),
-              currentAccountPicture: const CircleAvatar(
-                backgroundColor: AppColors.primary,
-                child: Icon(LucideIcons.user, color: Colors.white, size: 36),
-              ),
-              accountName: Text(
-                state.riderName ?? "Vikram Singh",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              accountEmail: Text(
-                state.vehicleNumber ?? "UP32-AB-9999",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: AppColors.textSecondary,
-                ),
+      backgroundColor: AppColors.surface,
+      child: Column(
+        children: [
+          // Drawer Header matching Rider App
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(color: AppColors.primary),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.white24,
+              child: Icon(LucideIcons.user, color: Colors.white, size: 36),
+            ),
+            accountName: Text(
+              state.riderName ?? "Vikram Singh",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w300,
+                color: Colors.white,
               ),
             ),
-             Divider(color: AppColors.border),
+            accountEmail: Text(
+              state.vehicleNumber ?? "UP32-AB-9999",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: Colors.white70,
+              ),
+            ),
+          ),
 
-            // Drawer Items
-            ListTile(
-              leading: Icon(LucideIcons.home, color: AppColors.textPrimary),
-              title: Text("Home Console", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-              onTap: () {
-                context.pop();
-                context.go('/home');
-              },
+          // Drawer Navigation Items
+          ListTile(
+            leading: Icon(LucideIcons.indianRupee, color: AppColors.textPrimary),
+            title: Text("Weekly Earnings", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+            onTap: () {
+              context.pop();
+              context.go('/earnings');
+            },
+          ),
+          ListTile(
+            leading: Icon(LucideIcons.user, color: AppColors.textPrimary),
+            title: Text("Driver Profile", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+            onTap: () {
+              context.pop();
+              context.go('/profile');
+            },
+          ),
+          Consumer(
+            builder: (context, ref, _) {
+              final themeMode = ref.watch(themeProvider);
+              final isDark = themeMode == ThemeMode.dark || (themeMode == ThemeMode.system && AppColors.isDark);
+
+              return ListTile(
+                leading: Icon(isDark ? LucideIcons.sun : LucideIcons.moon, color: AppColors.textPrimary),
+                title: Text(isDark ? "Light Mode" : "Dark Mode", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                onTap: () {
+                  ref.read(themeProvider.notifier).toggleTheme();
+                },
+              );
+            },
+          ),
+
+          const Spacer(),
+          Divider(color: AppColors.border, height: 1),
+          ListTile(
+            leading: Icon(LucideIcons.logOut, color: AppColors.error),
+            title: Text(
+              "Go Offline & Exit",
+              style: GoogleFonts.plusJakartaSans(
+                color: AppColors.error,
+                fontWeight: FontWeight.w300,
+              ),
             ),
-            ListTile(
-              leading: Icon(LucideIcons.indianRupee, color: AppColors.textPrimary),
-              title: Text("Weekly Earnings", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-              onTap: () {
-                context.pop();
-                context.go('/earnings');
-              },
-            ),
-            ListTile(
-              leading: Icon(LucideIcons.user, color: AppColors.textPrimary),
-              title: Text("Driver Profile", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-              onTap: () {
-                context.pop();
-                context.go('/profile');
-              },
-            ),
-            const Spacer(),
-            ListTile(
-              leading: Icon(LucideIcons.logOut, color: AppColors.error),
-              title: Text("Go Offline & Exit", style: GoogleFonts.plusJakartaSans(color: AppColors.error)),
-              onTap: () {
-                ref.read(driverStateProvider.notifier).toggleDutyStatus();
-                context.pop();
-                context.go('/auth/phone');
-              },
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+            onTap: () {
+              ref.read(driverStateProvider.notifier).toggleDutyStatus();
+              context.pop();
+              context.go('/auth/phone');
+            },
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }

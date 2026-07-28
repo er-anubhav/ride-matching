@@ -8,7 +8,7 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
   static const String _prefKey = 'theme_mode';
   final SharedPreferences _prefs;
 
-  ThemeNotifier(this._prefs) : super(ThemeMode.system) {
+  ThemeNotifier(this._prefs) : super(ThemeMode.light) {
     _loadTheme();
   }
 
@@ -18,13 +18,17 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
       state = ThemeMode.light;
     } else if (savedMode == 'dark') {
       state = ThemeMode.dark;
-    } else {
+    } else if (savedMode == 'system') {
       state = ThemeMode.system;
+    } else {
+      // No saved preference — default to light (white)
+      state = ThemeMode.light;
     }
     _updateAppColors();
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {
+    _updateAppColorsForMode(mode); // update BEFORE notifying listeners
     state = mode;
     String modeString = 'system';
     if (mode == ThemeMode.light) {
@@ -33,20 +37,22 @@ class ThemeNotifier extends StateNotifier<ThemeMode> {
       modeString = 'dark';
     }
     await _prefs.setString(_prefKey, modeString);
-    _updateAppColors();
   }
 
-  void _updateAppColors() {
+  void _updateAppColors() => _updateAppColorsForMode(state);
+
+  void _updateAppColorsForMode(ThemeMode mode) {
     Brightness brightness;
-    if (state == ThemeMode.light) {
+    if (mode == ThemeMode.light) {
       brightness = Brightness.light;
-    } else if (state == ThemeMode.dark) {
+    } else if (mode == ThemeMode.dark) {
       brightness = Brightness.dark;
     } else {
       brightness = PlatformDispatcher.instance.platformBrightness;
     }
     AppColors.brightness = brightness;
   }
+
   
   // Call this when system brightness changes (e.g. PlatformDispatcher listener)
   void handleSystemBrightnessChanged() {

@@ -1,3 +1,4 @@
+import '../providers/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +14,9 @@ class TrackingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider); // rebuild on theme change
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && AppColors.isDark);
     final booking = ref.watch(bookingProvider);
     final location = ref.watch(locationProvider);
     final currentLoc = ref.watch(currentLocationProvider);
@@ -63,6 +67,7 @@ class TrackingScreen extends ConsumerWidget {
                       : (location.destLng ?? defaultLng),
                   driverLat: booking.driverLat,
                   driverLng: booking.driverLng,
+                  isDark: isDark,
                 ),
                 if (booking.webSocketStatus == WebSocketStatus.connectionError)
                   Positioned(

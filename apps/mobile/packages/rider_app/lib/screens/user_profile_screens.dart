@@ -14,6 +14,7 @@ class WalletScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeProvider); // rebuild on theme change
     final wallet = ref.watch(walletProvider);
 
     return Scaffold(
@@ -41,8 +42,26 @@ class WalletScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Balance Card
-              GlassCard(
+              Container(
                 padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary.withValues(alpha: 0.85),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.25),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -50,9 +69,9 @@ class WalletScreen extends ConsumerWidget {
                       "TOTAL BALANCE",
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
-                        
-                        color: AppColors.textMuted,
-                        letterSpacing: 1.0,
+                        fontWeight: FontWeight.w200,
+                        color: Colors.white70,
+                        letterSpacing: 1.2,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -60,6 +79,7 @@ class WalletScreen extends ConsumerWidget {
                       "₹${wallet.balance.toStringAsFixed(2)}",
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 36,
+                        fontWeight: FontWeight.w200,
                         color: Colors.white,
                       ),
                     ),
@@ -82,7 +102,7 @@ class WalletScreen extends ConsumerWidget {
                 "Transaction History",
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
-                  
+                  fontWeight: FontWeight.w200,
                   color: AppColors.textPrimary,
                 ),
               ),
@@ -102,14 +122,19 @@ class WalletScreen extends ConsumerWidget {
                         separatorBuilder: (context, index) => Divider(color: AppColors.border),
                         itemBuilder: (context, index) {
                           final tx = wallet.transactions[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceCard,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.border),
+                            ),
                             child: Row(
                               children: [
                                 Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.surfaceCard,
+                                    color: (tx.contains("deducted") ? AppColors.error : AppColors.success).withValues(alpha: 0.12),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -124,7 +149,7 @@ class WalletScreen extends ConsumerWidget {
                                     tx,
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 13,
-                                      fontWeight: FontWeight.w400,
+                                      fontWeight: FontWeight.w500,
                                       color: AppColors.textPrimary,
                                     ),
                                   ),
@@ -145,27 +170,22 @@ class WalletScreen extends ConsumerWidget {
   Widget _buildQuickAmount(BuildContext context, WidgetRef ref, double amount) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white.withValues(alpha: 0.05),
-        foregroundColor: Colors.white,
-        side: const BorderSide(color: Colors.white30, width: 1),
+        backgroundColor: Colors.white.withValues(alpha: 0.1),
+        foregroundColor: Colors.white38,
+        disabledBackgroundColor: Colors.white.withValues(alpha: 0.1),
+        disabledForegroundColor: Colors.white38,
+        elevation: 0,
+        side: const BorderSide(color: Colors.white12, width: 1),
         minimumSize: const Size(80, 44),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      onPressed: () {
-        ref.read(walletProvider.notifier).addMoney(amount);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Successfully added ₹${amount.toStringAsFixed(0)} to wallet!",
-              style: GoogleFonts.plusJakartaSans(color: Colors.white),
-            ),
-            backgroundColor: AppColors.primary,
-          ),
-        );
-      },
+      onPressed: null,
       child: Text(
         "+₹${amount.toStringAsFixed(0)}",
-        style: GoogleFonts.plusJakartaSans(),
+        style: GoogleFonts.plusJakartaSans(
+          fontWeight: FontWeight.w700,
+          color: Colors.white38,
+        ),
       ),
     );
   }
@@ -175,82 +195,11 @@ class WalletScreen extends ConsumerWidget {
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
-  String _getThemeName(ThemeMode mode) {
-    switch (mode) {
-      case ThemeMode.system:
-        return "System Default";
-      case ThemeMode.light:
-        return "Light Theme";
-      case ThemeMode.dark:
-        return "Dark Theme";
-    }
-  }
-
-  void _showThemeSelectionDialog(BuildContext context, WidgetRef ref) {
-    final currentTheme = ref.read(themeProvider);
-    
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surface,
-          title: Text(
-            "Select Theme",
-            style: GoogleFonts.plusJakartaSans(
-              color: AppColors.textPrimary,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.system,
-                groupValue: currentTheme,
-                title: Text("System Default", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-                activeColor: AppColors.primary,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) {
-                    ref.read(themeProvider.notifier).setThemeMode(value);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.light,
-                groupValue: currentTheme,
-                title: Text("Light Theme", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-                activeColor: AppColors.primary,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) {
-                    ref.read(themeProvider.notifier).setThemeMode(value);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-              RadioListTile<ThemeMode>(
-                value: ThemeMode.dark,
-                groupValue: currentTheme,
-                title: Text("Dark Theme", style: GoogleFonts.plusJakartaSans(color: AppColors.textPrimary)),
-                activeColor: AppColors.primary,
-                onChanged: (ThemeMode? value) {
-                  if (value != null) {
-                    ref.read(themeProvider.notifier).setThemeMode(value);
-                    Navigator.of(context).pop();
-                  }
-                },
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
+  // Theme is now controlled from the sidebar drawer
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(userProfileProvider);
-    final themeMode = ref.watch(themeProvider);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -358,12 +307,8 @@ class ProfileScreen extends ConsumerWidget {
                 "Support requests",
                 () => context.push('/profile/help'),
               ),
-              _buildOptionRow(
-                LucideIcons.palette,
-                "App Theme",
-                _getThemeName(themeMode),
-                () => _showThemeSelectionDialog(context, ref),
-              ),
+              const SizedBox(height: 8),
+              _buildThemeDropdownRow(context, ref),
 
               const Spacer(),
               // Version Card
@@ -408,7 +353,7 @@ class ProfileScreen extends ConsumerWidget {
                   Text(
                     title,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
+                      fontSize: 15,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -425,6 +370,81 @@ class ProfileScreen extends ConsumerWidget {
             Icon(LucideIcons.chevronRight, color: AppColors.textMuted, size: 18),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildThemeDropdownRow(BuildContext context, WidgetRef ref) {
+    final currentMode = ref.watch(themeProvider);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 4.0, bottom: 6.0),
+            child: Text(
+              "App Theme",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w300,
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 2.0),
+            decoration: BoxDecoration(
+              color: AppColors.surfaceCard,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<ThemeMode>(
+                value: currentMode,
+                isExpanded: true,
+                dropdownColor: AppColors.surface,
+                borderRadius: BorderRadius.circular(14),
+                icon: Icon(LucideIcons.chevronDown, size: 18, color: AppColors.textSecondary),
+                style: GoogleFonts.plusJakartaSans(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                ),
+                items: const [
+                  DropdownMenuItem(
+                    value: ThemeMode.light,
+                    child: _ThemeDropdownOption(
+                      icon: LucideIcons.sun,
+                      label: 'Light Mode',
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.dark,
+                    child: _ThemeDropdownOption(
+                      icon: LucideIcons.moon,
+                      label: 'Dark Mode',
+                    ),
+                  ),
+                  DropdownMenuItem(
+                    value: ThemeMode.system,
+                    child: _ThemeDropdownOption(
+                      icon: LucideIcons.smartphone,
+                      label: 'System Default',
+                    ),
+                  ),
+                ],
+                onChanged: (ThemeMode? value) {
+                  if (value != null) {
+                    ref.read(themeProvider.notifier).setThemeMode(value);
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -682,7 +702,7 @@ class _WalletPaymentScreenState extends ConsumerState<WalletPaymentScreen> {
                     "Add Payment Method",
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w300,
                       color: AppColors.textPrimary,
                     ),
                   ),
@@ -817,16 +837,40 @@ class _WalletPaymentScreenState extends ConsumerState<WalletPaymentScreen> {
                           color: Colors.white70,
                         ),
                       ),
-                      const Icon(LucideIcons.creditCard, color: Colors.white, size: 28),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.white30),
+                        ),
+                        child: Text(
+                          "COMING SOON",
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                            letterSpacing: 1.0,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const Spacer(),
                   Text(
-                    "••••  ••••  ••••  4820",
+                    "COMING SOON",
                     style: GoogleFonts.shareTechMono(
-                      fontSize: 24,
-                      color: Colors.white,
+                      fontSize: 22,
+                      color: Colors.white.withValues(alpha: 0.9),
                       letterSpacing: 2.0,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Digital Co-branded Card & Instant Cashback Rewards",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.75),
                     ),
                   ),
                   const Spacer(),
@@ -1181,7 +1225,7 @@ class _SecuritySosScreenState extends ConsumerState<SecuritySosScreen> {
                       contact.name.substring(0, 1).toUpperCase(),
                       style: GoogleFonts.plusJakartaSans(
                         color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w300,
                       ),
                     ),
                   ),
@@ -1576,6 +1620,31 @@ class _HelpSupportScreenState extends ConsumerState<HelpSupportScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ThemeDropdownOption extends StatelessWidget {
+  final IconData icon;
+  final String label;
+
+  const _ThemeDropdownOption({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textSecondary),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
     );
   }
 }

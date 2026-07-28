@@ -41,7 +41,10 @@ final GoRouter appRouter = GoRouter(
     ),
     GoRoute(
       path: '/destination-picker',
-      builder: (context, state) => const DestinationPickerScreen(),
+      builder: (context, state) {
+        final saveTag = state.uri.queryParameters['saveTag'];
+        return DestinationPickerScreen(saveTag: saveTag);
+      },
     ),
     GoRoute(
       path: '/ride-summary',

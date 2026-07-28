@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import {
   CreditCard, Car, CheckCircle, AlertTriangle,
-  RefreshCw
+  RefreshCw, Download
 } from 'lucide-react';
 
 import LiveTripMonitor from './LiveTripMonitor';
@@ -217,6 +217,34 @@ export default function Dashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleExportCSV = () => {
+    let csvRows: string[] = [];
+    if (section === 'payments') {
+      csvRows.push('Payment ID,Trip ID,Rider ID,Amount (INR),Status,Created At');
+      payments.forEach((p) => {
+        csvRows.push(`"${p.id}","${p.tripId}","${p.riderId}","${p.amount}","${p.status}","${p.createdAt}"`);
+      });
+    } else if (section === 'trips') {
+      csvRows.push('Trip ID,Rider ID,Status,Estimated Fare (INR),Final Fare (INR),Created At');
+      trips.forEach((t) => {
+        csvRows.push(`"${t.id}","${t.riderId}","${t.status}","${t.estimatedFare || 0}","${t.finalFare || 0}","${t.createdAt}"`);
+      });
+    } else {
+      csvRows.push('Driver ID,Driver Name,Phone,Vehicle Type,KYC Status,Created At');
+      (kycData?.drivers || []).forEach((d) => {
+        csvRows.push(`"${d.id}","${d.name || ''}","${d.phone}","${d.vehicleType}","${d.kycStatus}","${d.createdAt}"`);
+      });
+    }
+    const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `mr_rideo_${section}_report_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleRefresh = () => {
     if (section === 'kyc') fetchKycData();
     else if (section === 'payments') fetchPayments();
@@ -258,6 +286,15 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="flex gap-3">
+              <button
+                id="export-csv-btn"
+                className="px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-300 rounded-[--r-sm] font-sans text-[0.8125rem] font-medium cursor-pointer flex items-center gap-1.5 transition-all duration-[120ms] hover:bg-emerald-100 whitespace-nowrap shadow-sm"
+                onClick={handleExportCSV}
+                aria-label="Export report to CSV"
+              >
+                <Download size={16} />
+                Export CSV
+              </button>
               <button
                 id="refresh-btn"
                 className="px-4 py-2 bg-gradient-to-b from-white to-[#f0ece4] text-[var(--text-secondary)] border border-[var(--border-strong)] rounded-[--r-sm] font-sans text-[0.8125rem] font-medium cursor-pointer flex items-center gap-1.5 transition-all duration-[120ms] hover:from-white hover:to-[#e8e4dc] hover:text-[var(--text-primary)] active:bg-[var(--surface-inset)] active:translate-y-px whitespace-nowrap"

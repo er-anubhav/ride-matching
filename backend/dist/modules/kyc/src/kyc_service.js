@@ -23,16 +23,18 @@ class KycService {
     static async getKycStatus(driverId) {
         const driverProfile = await prisma_1.prisma.driverProfile.findUnique({
             where: { driverId },
-            include: {
-                documents: true,
-            },
         });
         if (!driverProfile) {
             return { status: 'PENDING', documents: [] };
         }
+        // Documents are on User, not DriverProfile — query separately
+        const docs = await prisma_1.prisma.document.findMany({
+            where: { driverId },
+            orderBy: { createdAt: 'desc' },
+        });
         return {
             status: driverProfile.kycStatus,
-            documents: driverProfile.documents.map(d => ({
+            documents: docs.map(d => ({
                 type: d.docType,
                 status: d.verificationStatus,
                 s3Key: d.s3Key,

@@ -19,7 +19,6 @@ const configSchema = zod_1.z.object({
     CLOUDFLARE_R2_SECRET_ACCESS_KEY: zod_1.z.string().optional(),
     CLOUDFLARE_R2_BUCKET_NAME: zod_1.z.string().optional(),
     OLA_MAPS_API_KEY: zod_1.z.string().optional(),
-    USE_MOCK_OTP: zod_1.z.preprocess((val) => val === 'true', zod_1.z.boolean().default(false)),
     ENABLE_RATE_LIMIT: zod_1.z.preprocess((val) => val !== 'false', zod_1.z.boolean().default(true)),
     DEFAULT_CITY_ID: zod_1.z.string().optional().default('LKO'),
     ENABLE_DEFAULT_CITY: zod_1.z.preprocess((val) => val === 'true', zod_1.z.boolean().default(false)),

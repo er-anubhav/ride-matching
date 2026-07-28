@@ -6,12 +6,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
 
 import '../providers/driver_state_providers.dart';
+import '../providers/theme_provider.dart';
 
 class EarningsScreen extends ConsumerWidget {
   const EarningsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeProvider);
     final state = ref.watch(driverStateProvider);
 
     return Scaffold(

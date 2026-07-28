@@ -33,14 +33,12 @@ function mapTripToState(dbTrip, rider) {
 }
 class TripService {
     static async createTrip(params) {
-        const tripId = `trip-${Math.random().toString(36).substr(2, 9)}`;
         const rider = await prisma_1.prisma.user.findUnique({ where: { id: params.riderId } });
         if (!rider) {
             throw new errors_1.NotFoundError(`Rider not found: ${params.riderId}`);
         }
         const dbTrip = await prisma_1.prisma.trip.create({
             data: {
-                id: tripId,
                 riderId: params.riderId,
                 cityId: 'Lucknow',
                 vehicleType: params.vehicleType,
@@ -55,11 +53,11 @@ class TripService {
                 riderOtp: '4820',
             },
         });
-        logger_1.logger.info({ tripId }, 'Trip successfully written to PostgreSQL');
+        logger_1.logger.info({ tripId: dbTrip.id }, 'Trip successfully written to PostgreSQL');
         const trip = mapTripToState(dbTrip, rider);
         event_bus_1.eventBus.emit('trip.requested', trip);
         // Background Job: Check for trip dispatch timeout after 60 seconds
-        await queues_1.tripTimeoutQueue.add('check-timeout', { tripId }, { delay: 60000 });
+        await queues_1.tripTimeoutQueue.add('check-timeout', { tripId: dbTrip.id }, { delay: 60000 });
         return trip;
     }
     static async acceptTrip(tripId, driverId) {

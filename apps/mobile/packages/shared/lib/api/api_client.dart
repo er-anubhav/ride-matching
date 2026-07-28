@@ -14,11 +14,8 @@ class ApiClient {
     if (envApiUrl.isNotEmpty) {
       return envApiUrl;
     }
-    if (kIsWeb) {
-      return 'http://localhost:8080/api';
-    }
-    // Android emulator uses 10.0.2.2 to access host localhost
-    return Platform.isAndroid ? 'http://10.0.2.2:8080/api' : 'http://localhost:8080/api';
+    // Production Server IP
+    return 'http://222.167.207.239:8080/api';
   }
 
 
@@ -67,6 +64,34 @@ class ApiClient {
 
     try {
       final response = await http.post(
+        uri,
+        headers: headers,
+        body: jsonEncode(body),
+      );
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  Future<dynamic> delete(String endpoint) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final headers = await _getHeaders();
+
+    try {
+      final response = await http.delete(uri, headers: headers);
+      return _processResponse(response);
+    } catch (e) {
+      throw Exception('Network error: $e');
+    }
+  }
+
+  Future<dynamic> put(String endpoint, Map<String, dynamic> body) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+    final headers = await _getHeaders();
+
+    try {
+      final response = await http.put(
         uri,
         headers: headers,
         body: jsonEncode(body),

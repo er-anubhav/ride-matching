@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save } from 'lucide-react';
-
+import axios from 'axios';
 
 interface PricingTier {
   vehicleType: string;
@@ -19,6 +19,25 @@ export function PricingConfigurator() {
   ]);
   const [saved, setSaved] = useState(false);
 
+  const token = localStorage.getItem('adminToken') || '';
+  const authHeader = { headers: { Authorization: `Bearer ${token}` } };
+
+  useEffect(() => {
+    fetchPricing();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const fetchPricing = async () => {
+    try {
+      const res = await axios.get('/api/admin/pricing', authHeader);
+      if (res.data && res.data.tiers && res.data.tiers.length > 0) {
+        setTiers(res.data.tiers);
+      }
+    } catch (err) {
+      console.error('Failed to fetch pricing config:', err);
+    }
+  };
+
   const handleUpdate = (index: number, field: keyof PricingTier, value: number) => {
     const next = [...tiers];
     next[index] = { ...next[index], [field]: value };
@@ -26,9 +45,14 @@ export function PricingConfigurator() {
     setSaved(false);
   };
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+  const handleSave = async () => {
+    try {
+      await axios.put('/api/admin/pricing', { tiers }, authHeader);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3000);
+    } catch (err) {
+      console.error('Failed to save pricing matrix:', err);
+    }
   };
 
   return (

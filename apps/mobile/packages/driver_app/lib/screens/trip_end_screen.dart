@@ -6,12 +6,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
 
 import '../providers/driver_state_providers.dart';
+import '../providers/theme_provider.dart';
 
 class TripEndScreen extends ConsumerWidget {
   const TripEndScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(themeProvider);
     final state = ref.watch(driverStateProvider);
     final notifier = ref.read(driverStateProvider.notifier);
 
@@ -149,7 +151,7 @@ class TripEndScreen extends ConsumerWidget {
           label,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isBold ? FontWeight.w300 : FontWeight.w400,
             color: isBold ? AppColors.textPrimary : AppColors.textSecondary,
           ),
         ),
@@ -157,7 +159,7 @@ class TripEndScreen extends ConsumerWidget {
           value,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            fontWeight: isBold ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: isBold ? FontWeight.w300 : FontWeight.w400,
             color: valueColor ?? AppColors.textPrimary,
           ),
         ),

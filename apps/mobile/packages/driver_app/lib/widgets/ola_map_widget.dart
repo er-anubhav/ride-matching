@@ -1,5 +1,18 @@
+import 'dart:convert';
+import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:maplibre_gl/maplibre_gl.dart';
+
+const String _apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+
+String _styleUrl(bool isDark) =>
+    'https://api.olamaps.io/tiles/vector/v1/styles/'
+    '${isDark ? 'default-dark-standard' : 'default-light-standard'}'
+    '/style.json?api_key=$_apiKey';
 
 class OlaMapWidget extends StatefulWidget {
   final double? centerLat;
@@ -7,11 +20,14 @@ class OlaMapWidget extends StatefulWidget {
   final double? pickupLat;
   final double? pickupLng;
   final double? destLat;
-  final double? pickupLngCustom;
   final double? destLng;
   final double? driverLat;
   final double? driverLng;
   final double zoom;
+  final bool isDark;
+  final bool showUserLocation;
+  final bool showLocationButton;
+  final List<List<double>>? routePoints;
 
   const OlaMapWidget({
     super.key,
@@ -23,8 +39,11 @@ class OlaMapWidget extends StatefulWidget {
     this.destLng,
     this.driverLat,
     this.driverLng,
-    this.pickupLngCustom,
-    this.zoom = 15.0,
+    this.zoom = 16.0,
+    this.isDark = false,
+    this.showUserLocation = true,
+    this.showLocationButton = true,
+    this.routePoints,
   });
 
   @override
@@ -32,288 +51,423 @@ class OlaMapWidget extends StatefulWidget {
 }
 
 class _OlaMapWidgetState extends State<OlaMapWidget> {
-  late final WebViewController _webViewController;
-  bool _isMapInitialized = false;
+  MapLibreMapController? _controller;
+  Symbol? _driverSymbol;
+  Symbol? _pickupSymbol;
+  Symbol? _destSymbol;
+  Line? _routeLine;
+  bool _styleLoaded = false;
+  String? _resolvedStyleString;
+  bool _loadingStyle = true;
 
-  final String _apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
+  static final Map<bool, String> _styleCache = {};
 
-  static const String _htmlContent = '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-  <title>Ola Maps</title>
-  <link href="https://unpkg.com/maplibre-gl@latest/dist/maplibre-gl.css" rel="stylesheet" />
-  <script src="https://www.unpkg.com/olamaps-web-sdk@latest/dist/olamaps-web-sdk.umd.js"></script>
-  <style>
-    html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #18181B; }
-    #map { position: absolute; top: 0; bottom: 0; width: 100%; height: 100%; }
-    .maplibregl-ctrl, .olamaps-ctrl, [class*="-ctrl"], [class*="ctrl-"] { display: none !important; }
-    .maplibregl-ctrl-attrib, .maplibregl-ctrl-logo, .olamaps-ctrl-attrib, .olamaps-ctrl-logo { display: none !important; }
-    div[class*="attrib"], div[class*="logo"] { display: none !important; }
-    span[class*="attrib"], span[class*="logo"] { display: none !important; }
-    img[src*="ola"], img[src*="logo"], img[class*="logo"] { display: none !important; }
-    a[href*="olamaps"], a[href*="ola"], a[href*="openstreetmap"], a[href*="mapbox"] { display: none !important; }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    let map;
-    let userMarker;
-    let driverMarker;
-    let pickupMarker;
-    let destMarker;
-    let olaMaps;
-    let isMapLoaded = false;
-    let pendingRoute = null;
-    let pendingUser = null;
-    let pendingDriver = null;
-    let myApiKey = '';
-
-    function decodePolyline(encoded) {
-      let points = [];
-      let index = 0, len = encoded.length;
-      let lat = 0, lng = 0;
-
-      while (index < len) {
-        let b, shift = 0, result = 0;
-        do {
-          b = encoded.charCodeAt(index++) - 63;
-          result |= (b & 0x1f) << shift;
-          shift += 5;
-        } while (b >= 0x20);
-        let dlat = ((result & 1) ? ~(result >> 1) : (result >> 1));
-        lat += dlat;
-
-        shift = 0;
-        result = 0;
-        do {
-          b = encoded.charCodeAt(index++) - 63;
-          result |= (b & 0x1f) << shift;
-          shift += 5;
-        } while (b >= 0x20);
-        let dlng = ((result & 1) ? ~(result >> 1) : (result >> 1));
-        lng += dlng;
-
-        points.push([lng / 1E5, lat / 1E5]);
-      }
-      return points;
-    }
-
-    function initMap(apiKey, centerLat, centerLng, zoom) {
-      myApiKey = apiKey;
-      olaMaps = new OlaMaps({ apiKey: apiKey });
-      map = olaMaps.init({
-        style: 'https://api.olamaps.io/tiles/vector/v1/styles/default-dark-standard/style.json?api_key=' + apiKey,
-        container: 'map',
-        center: [centerLng, centerLat],
-        zoom: zoom || 15,
-        attributionControl: false
-      });
-
-      map.on('load', () => {
-        isMapLoaded = true;
-        if (pendingRoute) {
-          drawRoute(pendingRoute.pLat, pendingRoute.pLng, pendingRoute.dLat, pendingRoute.dLng);
-          pendingRoute = null;
-        }
-        if (pendingUser) {
-          updateUserLocation(pendingUser.lat, pendingUser.lng, pendingUser.zoom);
-          pendingUser = null;
-        }
-        if (pendingDriver) {
-          updateDriverLocation(pendingDriver.lat, pendingDriver.lng);
-          pendingDriver = null;
-        }
-      });
-    }
-
-    function updateUserLocation(lat, lng, zoom) {
-      if (!map || !olaMaps) return;
-      if (!isMapLoaded) {
-        pendingUser = { lat, lng, zoom };
-        return;
-      }
-      if (userMarker) {
-        userMarker.setLngLat([lng, lat]);
-      } else {
-        userMarker = olaMaps.addMarker({
-          color: '#2B8CEE',
-        }).setLngLat([lng, lat]).addTo(map);
-      }
-      map.flyTo({ center: [lng, lat], zoom: zoom || 15 });
-    }
-
-    function updateDriverLocation(lat, lng) {
-      if (!map || !olaMaps) return;
-      if (!isMapLoaded) {
-        pendingDriver = { lat, lng };
-        return;
-      }
-      if (driverMarker) {
-        driverMarker.setLngLat([lng, lat]);
-      } else {
-        driverMarker = olaMaps.addMarker({
-          color: '#6D0FA5',
-        }).setLngLat([lng, lat]).addTo(map);
-      }
-    }
-
-    function drawRoute(pLat, pLng, dLat, dLng) {
-      if (!map || !olaMaps) return;
-      if (!isMapLoaded) {
-        pendingRoute = { pLat, pLng, dLat, dLng };
-        return;
-      }
-      
-      if (pickupMarker) pickupMarker.remove();
-      if (destMarker) destMarker.remove();
-
-      pickupMarker = olaMaps.addMarker({ color: '#10B981' }).setLngLat([pLng, pLat]).addTo(map);
-      destMarker = olaMaps.addMarker({ color: '#6D0FA5' }).setLngLat([dLng, dLat]).addTo(map);
-
-      const directionsUrl = 'https://api.olamaps.io/routing/v1/directions?origin=' + pLat + ',' + pLng + '&destination=' + dLat + ',' + dLng + '&api_key=' + myApiKey;
-      
-      fetch(directionsUrl, {
-        method: 'POST',
-        headers: {
-          'X-Request-Id': 'mr-rideo-' + Math.floor(Math.random() * 1000000)
-        }
-      })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Directions API error: ' + response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        if (data && data.routes && data.routes.length > 0) {
-          const overviewPolyline = data.routes[0].overview_polyline;
-          if (overviewPolyline) {
-            const decodedPoints = decodePolyline(overviewPolyline);
-            if (decodedPoints && decodedPoints.length > 0) {
-              renderPolyline(decodedPoints);
-              return;
-            }
-          }
-        }
-        renderPolyline([[pLng, pLat], [dLng, dLat]]);
-      })
-      .catch(error => {
-        console.error('Directions error:', error);
-        renderPolyline([[pLng, pLat], [dLng, dLat]]);
-      });
-
-      function renderPolyline(coordinates) {
-        const routeData = {
-          'type': 'Feature',
-          'properties': {},
-          'geometry': {
-            'type': 'LineString',
-            'coordinates': coordinates
-          }
-        };
-
-        if (map.getSource('route')) {
-          map.getSource('route').setData(routeData);
-        } else {
-          map.addSource('route', {
-            'type': 'geojson',
-            'data': routeData
-          });
-
-          map.addLayer({
-            'id': 'route',
-            'type': 'line',
-            'source': 'route',
-            'layout': {
-              'line-join': 'round',
-              'line-cap': 'round'
-            },
-            'paint': {
-              'line-color': '#6D0FA5',
-              'line-width': 2
-            }
-          });
-        }
-
-        const lats = coordinates.map(c => c[1]);
-        const lngs = coordinates.map(c => c[0]);
-        const minLng = Math.min.apply(null, lngs);
-        const maxLng = Math.max.apply(null, lngs);
-        const minLat = Math.min.apply(null, lats);
-        const maxLat = Math.max.apply(null, lats);
-        map.fitBounds([[minLng, minLat], [maxLng, maxLat]], { padding: 80 });
-      }
-    }
-  </script>
-</body>
-</html>
-''';
+  LatLng get _initialCenter => LatLng(
+        widget.driverLat ?? widget.centerLat ?? widget.pickupLat ?? 26.8500,
+        widget.driverLng ?? widget.centerLng ?? widget.pickupLng ?? 80.9400,
+      );
 
   @override
   void initState() {
     super.initState();
-    _webViewController = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(const Color(0xFF18181B))
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onWebResourceError: (WebResourceError error) {
-            debugPrint("OlaMap WebView Error: ${error.description} (code: ${error.errorCode})");
-          },
-          onPageFinished: (String url) {
-            setState(() {
-              _isMapInitialized = true;
-            });
-            final initialLat = widget.centerLat ?? widget.pickupLat ?? 26.8467;
-            final initialLng = widget.centerLng ?? widget.pickupLng ?? 80.9462;
-            _webViewController.runJavaScript(
-              "initMap('$_apiKey', $initialLat, $initialLng, ${widget.zoom});"
-            );
-            Future.delayed(const Duration(milliseconds: 500), () {
-              _updateMarkersAndRoutes();
-            });
-          },
-        ),
-      )
-      ..setOnConsoleMessage((JavaScriptConsoleMessage message) {
-        debugPrint("OlaMap JS Console: [${message.level.name}] ${message.message}");
-      })
-      ..loadHtmlString(_htmlContent);
+    _loadStyle();
   }
 
   @override
   void didUpdateWidget(OlaMapWidget oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (_isMapInitialized) {
-      _updateMarkersAndRoutes();
+    if (widget.isDark != oldWidget.isDark) {
+      _loadStyle();
+    } else if (_controller != null && _styleLoaded) {
+      _syncMarkersAndRoute();
     }
   }
 
-  void _updateMarkersAndRoutes() {
-    if (widget.centerLat != null && widget.centerLng != null) {
-      _webViewController.runJavaScript(
-        "updateUserLocation(${widget.centerLat}, ${widget.centerLng}, ${widget.zoom});"
-      );
+  Future<void> _loadStyle() async {
+    final isDark = widget.isDark;
+
+    // Fast path: if style is already cached in memory, use it instantly (0ms)
+    if (_styleCache.containsKey(isDark)) {
+      if (mounted) {
+        setState(() {
+          _resolvedStyleString = _styleCache[isDark]!;
+          _loadingStyle = false;
+          _styleLoaded = false;
+        });
+      }
+      return;
     }
-    if (widget.driverLat != null && widget.driverLng != null) {
-      _webViewController.runJavaScript(
-        "updateDriverLocation(${widget.driverLat}, ${widget.driverLng});"
-      );
+
+    // Only set _loadingStyle to true if we don't have a visible map yet
+    final bool isFirstLoad = _resolvedStyleString == null;
+    if (isFirstLoad && mounted) {
+      setState(() {
+        _loadingStyle = true;
+        _styleLoaded = false;
+      });
     }
-    if (widget.pickupLat != null && widget.pickupLng != null &&
-        widget.destLat != null && widget.destLng != null) {
-      _webViewController.runJavaScript(
-        "drawRoute(${widget.pickupLat}, ${widget.pickupLng}, ${widget.destLat}, ${widget.destLng});"
-      );
+
+    try {
+      final styleName = isDark ? 'default-dark-standard' : 'default-light-standard';
+      final url = Uri.parse('https://api.olamaps.io/tiles/vector/v1/styles/$styleName/style.json?api_key=$_apiKey');
+
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> styleJson = jsonDecode(response.body);
+
+        String addApiKey(String uri) {
+          if (uri.isEmpty || uri.contains('api_key=')) return uri;
+          final sep = uri.contains('?') ? '&' : '?';
+          return '$uri${sep}api_key=$_apiKey';
+        }
+
+        if (styleJson.containsKey('sprite') && styleJson['sprite'] is String) {
+          styleJson['sprite'] = addApiKey(styleJson['sprite'] as String);
+        }
+
+        if (styleJson.containsKey('glyphs') && styleJson['glyphs'] is String) {
+          styleJson['glyphs'] = addApiKey(styleJson['glyphs'] as String);
+        }
+
+        if (styleJson.containsKey('sources') && styleJson['sources'] is Map) {
+          final sources = styleJson['sources'] as Map<String, dynamic>;
+          for (final entry in sources.entries) {
+            final src = entry.value;
+            if (src is Map<String, dynamic>) {
+              if (src.containsKey('url') && src['url'] is String) {
+                final srcUrl = addApiKey(src['url'] as String);
+                try {
+                  final srcResp = await http.get(Uri.parse(srcUrl));
+                  if (srcResp.statusCode == 200) {
+                    final Map<String, dynamic> srcJson = jsonDecode(srcResp.body);
+                    src.remove('url');
+                    srcJson.forEach((k, v) {
+                      if (k == 'type') {
+                        src['type'] = 'vector';
+                      } else if (k == 'tiles' && v is List) {
+                        src['tiles'] = v.map((t) => addApiKey(t.toString())).toList();
+                      } else {
+                        src[k] = v;
+                      }
+                    });
+                    src['type'] = 'vector';
+                  } else {
+                    src['url'] = srcUrl;
+                  }
+                } catch (_) {
+                  src['url'] = srcUrl;
+                }
+              }
+              if (src.containsKey('tiles') && src['tiles'] is List) {
+                src['tiles'] = (src['tiles'] as List).map((t) => addApiKey(t.toString())).toList();
+              }
+              src['type'] = 'vector';
+            }
+          }
+        }
+
+        final encodedStyle = jsonEncode(styleJson);
+        _styleCache[isDark] = encodedStyle;
+
+        if (mounted) {
+          setState(() {
+            _resolvedStyleString = encodedStyle;
+            _loadingStyle = false;
+            _styleLoaded = false;
+          });
+        }
+        return;
+      }
+    } catch (e) {
+      debugPrint('Error fetching OlaMaps style: $e');
+    }
+
+    final fallbackUrl = _styleUrl(isDark);
+    _styleCache[isDark] = fallbackUrl;
+    if (mounted) {
+      setState(() {
+        _resolvedStyleString = fallbackUrl;
+        _loadingStyle = false;
+        _styleLoaded = false;
+      });
     }
   }
 
   @override
+  void dispose() {
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  void _onMapCreated(MapLibreMapController controller) {
+    _controller = controller;
+  }
+
+  void _onStyleLoaded() {
+    setState(() => _styleLoaded = true);
+    _syncMarkersAndRoute();
+  }
+
+  Future<void> _syncMarkersAndRoute() async {
+    final ctrl = _controller;
+    if (ctrl == null) return;
+
+    await _ensureMarkerImages(ctrl);
+    await _syncDriverMarker(ctrl);
+    await _syncPickupMarker(ctrl);
+    await _syncDestMarker(ctrl);
+    await _syncRoute(ctrl);
+  }
+
+  Future<void> _ensureMarkerImages(MapLibreMapController ctrl) async {
+    try {
+      final pickupBytes = await _createCustomMarkerBitmap(
+        label: 'PICKUP',
+        color: const Color(0xFF10B981),
+      );
+      await ctrl.addImage('driver_pickup_img', pickupBytes);
+
+      final destBytes = await _createCustomMarkerBitmap(
+        label: 'DROP-OFF',
+        color: const Color(0xFFEF4444),
+      );
+      await ctrl.addImage('driver_dest_img', destBytes);
+    } catch (e) {
+      debugPrint('Error creating driver marker bitmaps: $e');
+    }
+  }
+
+  Future<Uint8List> _createCustomMarkerBitmap({
+    required String label,
+    required Color color,
+  }) async {
+    final pictureRecorder = ui.PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    const size = Size(160, 68);
+
+    final bgPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final RRect rrect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(0, 0, 160, 48),
+      const Radius.circular(24),
+    );
+    canvas.drawRRect(rrect, bgPaint);
+
+    final dotPaint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(24, 24), 8, dotPaint);
+
+    final textPainter = TextPainter(
+      text: TextSpan(
+        text: label,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.0,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    );
+    textPainter.layout();
+    textPainter.paint(canvas, Offset(42, (48 - textPainter.height) / 2));
+
+    final path = Path()
+      ..moveTo(70, 48)
+      ..lineTo(90, 48)
+      ..lineTo(80, 64)
+      ..close();
+    canvas.drawPath(path, bgPaint);
+
+    final picture = pictureRecorder.endRecording();
+    final img = await picture.toImage(size.width.toInt(), size.height.toInt());
+    final byteData = await img.toByteData(format: ui.ImageByteFormat.png);
+    return byteData!.buffer.asUint8List();
+  }
+
+  Future<void> _syncDriverMarker(MapLibreMapController ctrl) async {
+    final lat = widget.driverLat;
+    final lng = widget.driverLng;
+    if (lat == null || lng == null) {
+      if (_driverSymbol != null) {
+        await ctrl.removeSymbol(_driverSymbol!);
+        _driverSymbol = null;
+      }
+      return;
+    }
+
+    final pos = LatLng(lat, lng);
+    if (_driverSymbol == null) {
+      _driverSymbol = await ctrl.addSymbol(
+        SymbolOptions(
+          geometry: pos,
+          iconImage: 'car-15',
+          iconSize: 2.0,
+        ),
+      );
+    } else {
+      await ctrl.updateSymbol(_driverSymbol!, SymbolOptions(geometry: pos));
+    }
+  }
+
+  Future<void> _syncPickupMarker(MapLibreMapController ctrl) async {
+    final lat = widget.pickupLat;
+    final lng = widget.pickupLng;
+    if (lat == null || lng == null) {
+      if (_pickupSymbol != null) {
+        await ctrl.removeSymbol(_pickupSymbol!);
+        _pickupSymbol = null;
+      }
+      return;
+    }
+
+    final pos = LatLng(lat, lng);
+    if (_pickupSymbol == null) {
+      _pickupSymbol = await ctrl.addSymbol(
+        SymbolOptions(
+          geometry: pos,
+          iconImage: 'driver_pickup_img',
+          iconSize: 0.7,
+          iconAnchor: 'bottom',
+        ),
+      );
+    } else {
+      await ctrl.updateSymbol(_pickupSymbol!, SymbolOptions(geometry: pos));
+    }
+  }
+
+  Future<void> _syncDestMarker(MapLibreMapController ctrl) async {
+    final lat = widget.destLat;
+    final lng = widget.destLng;
+    if (lat == null || lng == null) {
+      if (_destSymbol != null) {
+        await ctrl.removeSymbol(_destSymbol!);
+        _destSymbol = null;
+      }
+      return;
+    }
+
+    final pos = LatLng(lat, lng);
+    if (_destSymbol == null) {
+      _destSymbol = await ctrl.addSymbol(
+        SymbolOptions(
+          geometry: pos,
+          iconImage: 'driver_dest_img',
+          iconSize: 0.7,
+          iconAnchor: 'bottom',
+        ),
+      );
+    } else {
+      await ctrl.updateSymbol(_destSymbol!, SymbolOptions(geometry: pos));
+    }
+  }
+
+  Future<void> _syncRoute(MapLibreMapController ctrl) async {
+    final points = widget.routePoints;
+    if (points == null || points.isEmpty) {
+      if (_routeLine != null) {
+        await ctrl.removeLine(_routeLine!);
+        _routeLine = null;
+      }
+      return;
+    }
+
+    final latLngs = points.map((p) => LatLng(p[0], p[1])).toList();
+    if (_routeLine == null) {
+      _routeLine = await ctrl.addLine(
+        LineOptions(
+          geometry: latLngs,
+          lineColor: '#6D0FA5',
+          lineWidth: 5.5,
+          lineOpacity: 0.9,
+        ),
+      );
+    } else {
+      await ctrl.updateLine(_routeLine!, LineOptions(geometry: latLngs));
+    }
+
+    // Fit camera to bounds
+    if (latLngs.length > 1) {
+      double minLat = latLngs.first.latitude;
+      double maxLat = latLngs.first.latitude;
+      double minLng = latLngs.first.longitude;
+      double maxLng = latLngs.first.longitude;
+
+      for (final p in latLngs) {
+        if (p.latitude < minLat) minLat = p.latitude;
+        if (p.latitude > maxLat) maxLat = p.latitude;
+        if (p.longitude < minLng) minLng = p.longitude;
+        if (p.longitude > maxLng) maxLng = p.longitude;
+      }
+
+      await ctrl.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          left: 50,
+          top: 70,
+          right: 50,
+          bottom: 100,
+        ),
+      );
+    }
+  }
+
+  void _recenter() {
+    final ctrl = _controller;
+    if (ctrl == null) return;
+    ctrl.animateCamera(
+      CameraUpdate.newLatLngZoom(_initialCenter, widget.zoom),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return WebViewWidget(controller: _webViewController);
+    if (_loadingStyle || _resolvedStyleString == null) {
+      return Container(
+        color: widget.isDark ? const Color(0xFF18181B) : const Color(0xFFF4F4F5),
+        child: const Center(
+          child: CircularProgressIndicator(color: Color(0xFF6D0FA5)),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        MapLibreMap(
+          initialCameraPosition: CameraPosition(
+            target: _initialCenter,
+            zoom: widget.zoom,
+          ),
+          styleString: _resolvedStyleString!,
+          onMapCreated: _onMapCreated,
+          onStyleLoadedCallback: _onStyleLoaded,
+          myLocationEnabled: widget.showUserLocation,
+          myLocationRenderMode: MyLocationRenderMode.normal,
+          compassEnabled: false,
+          attributionButtonMargins: const math.Point(-100, -100),
+        ),
+
+        if (widget.showLocationButton)
+          Positioned(
+            right: 16,
+            bottom: 100,
+            child: FloatingActionButton(
+              heroTag: 'driver_recenter_fab',
+              mini: true,
+              backgroundColor: widget.isDark ? const Color(0xFF27272A) : Colors.white,
+              foregroundColor: widget.isDark ? Colors.white : const Color(0xFF18181B),
+              elevation: 4,
+              onPressed: _recenter,
+              child: const Icon(LucideIcons.crosshair, size: 20),
+            ),
+          ),
+      ],
+    );
   }
 }

@@ -37,6 +37,8 @@ model User {
   driverProfile DriverProfile?
   documents     Document[]
   devices       UserDevice[]
+  savedPlaces   SavedPlace[]
+  supportTickets SupportTicket[]
 
   @@map("users")
   @@schema("auth")
@@ -88,6 +90,39 @@ model OtpCode {
 
   @@index([phone, expiresAt])
   @@map("otp_codes")
+  @@schema("auth")
+}
+
+model SavedPlace {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  label     String   @db.VarChar(50)
+  address   String   @db.Text
+  latitude  Decimal  @db.Decimal(10, 7)
+  longitude Decimal  @db.Decimal(10, 7)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("saved_places")
+  @@schema("auth")
+}
+
+model SupportTicket {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  subject     String   @db.VarChar(255)
+  category    String   @default("GENERAL") @db.VarChar(50)
+  description String   @db.Text
+  status      String   @default("OPEN") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@map("support_tickets")
   @@schema("auth")
 }
 

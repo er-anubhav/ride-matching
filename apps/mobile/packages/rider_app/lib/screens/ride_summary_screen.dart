@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
 
+import '../providers/theme_provider.dart';
 import '../providers/ui_state_providers.dart';
 import '../widgets/ola_map_widget.dart';
 
@@ -20,6 +21,9 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && AppColors.isDark);
     final location = ref.watch(locationProvider);
     final currentLoc = ref.watch(currentLocationProvider);
     final defaultLat = currentLoc.value?.latitude ?? 26.8500;
@@ -62,7 +66,7 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
         "subtitle": "Affordable 3-wheeler.",
         "price": autoPrice,
         "eta": autoEta,
-        "icon": Icons.electric_bike,
+        "icon": Icons.electric_rickshaw,
       },
       {
         "name": "Mr. Rideo Cab",
@@ -79,6 +83,59 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
         "icon": Icons.airport_shuttle,
       },
     ];
+    final pLat = location.pickupLat ?? defaultLat;
+    final pLng = location.pickupLng ?? defaultLng;
+
+    final String activeVehicleType = _selectedVehicleIndex == 0
+        ? 'bike'
+        : _selectedVehicleIndex == 1
+            ? 'auto'
+            : _selectedVehicleIndex == 2
+                ? 'cab'
+                : 'cab_xl';
+
+    final nearbyVehicles = [
+      NearbyDriver(
+        id: '${activeVehicleType}_1',
+        name: 'Captain 1',
+        lat: pLat + 0.0018,
+        lng: pLng + 0.0014,
+        vehicleType: activeVehicleType,
+        heading: 45.0,
+      ),
+      NearbyDriver(
+        id: '${activeVehicleType}_2',
+        name: 'Captain 2',
+        lat: pLat - 0.0014,
+        lng: pLng + 0.0021,
+        vehicleType: activeVehicleType,
+        heading: 135.0,
+      ),
+      NearbyDriver(
+        id: '${activeVehicleType}_3',
+        name: 'Captain 3',
+        lat: pLat + 0.0022,
+        lng: pLng - 0.0016,
+        vehicleType: activeVehicleType,
+        heading: 220.0,
+      ),
+      NearbyDriver(
+        id: '${activeVehicleType}_4',
+        name: 'Captain 4',
+        lat: pLat - 0.0019,
+        lng: pLng - 0.0012,
+        vehicleType: activeVehicleType,
+        heading: 310.0,
+      ),
+      NearbyDriver(
+        id: '${activeVehicleType}_5',
+        name: 'Captain 5',
+        lat: pLat + 0.0009,
+        lng: pLng - 0.0024,
+        vehicleType: activeVehicleType,
+        heading: 90.0,
+      ),
+    ];
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -90,10 +147,12 @@ class _RideSummaryScreenState extends ConsumerState<RideSummaryScreen> {
             child: Stack(
               children: [
                 OlaMapWidget(
-                  pickupLat: location.pickupLat ?? defaultLat,
-                  pickupLng: location.pickupLng ?? defaultLng,
+                  pickupLat: pLat,
+                  pickupLng: pLng,
                   destLat: location.destLat ?? defaultLat,
                   destLng: location.destLng ?? defaultLng,
+                  nearbyDrivers: nearbyVehicles,
+                  isDark: isDark,
                 ),
                 // Back Floating Navigation Button
                 Positioned(

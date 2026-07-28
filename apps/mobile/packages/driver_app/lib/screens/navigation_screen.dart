@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:shared/shared.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../providers/driver_state_providers.dart';
+import '../providers/theme_provider.dart';
 import '../widgets/ola_map_widget.dart';
 
 class NavigationScreen extends ConsumerWidget {
@@ -13,6 +15,9 @@ class NavigationScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system && AppColors.isDark);
     final state = ref.watch(driverStateProvider);
     final notifier = ref.read(driverStateProvider.notifier);
 
@@ -46,6 +51,7 @@ class NavigationScreen extends ConsumerWidget {
               destLat: pLat,
               destLng: pLng,
               zoom: 15.0,
+              isDark: isDark,
             ),
           ),
 
@@ -171,7 +177,13 @@ class NavigationScreen extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed: () async {
+                          final phone = state.riderPhone ?? "9876543210";
+                          final uri = Uri.parse('tel:$phone');
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(uri);
+                          }
+                        },
                         icon: const Icon(LucideIcons.phone, color: AppColors.primary),
                       ),
                       IconButton(

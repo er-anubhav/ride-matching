@@ -111,6 +111,8 @@ async function createServer() {
     await server.register(auth_1.authRoutes);
     await server.register(trip_1.tripRoutes);
     await server.register((await Promise.resolve().then(() => __importStar(require('./modules/kyc')))).kycRoutes);
+    await server.register((await Promise.resolve().then(() => __importStar(require('./modules/user_api')))).userApiRoutes);
+    await server.register((await Promise.resolve().then(() => __importStar(require('./modules/driver_api')))).driverApiRoutes);
     // Register Ride Tracking WebSocket handler
     server.route({
         method: 'GET',

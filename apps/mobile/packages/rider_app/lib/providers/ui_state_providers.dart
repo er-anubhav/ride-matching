@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:shared/shared.dart';
 import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -25,15 +26,12 @@ final routeMetricsProvider = FutureProvider<RouteMetrics?>((ref) async {
   final location = ref.watch(locationProvider);
   final currentLoc = ref.watch(currentLocationProvider);
   
-  final defaultLat = currentLoc.value?.latitude ?? 26.8500;
-  final defaultLng = currentLoc.value?.longitude ?? 80.9400;
+  final pLat = location.pickupLat ?? currentLoc.value?.latitude;
+  final pLng = location.pickupLng ?? currentLoc.value?.longitude;
+  final dLat = location.destLat;
+  final dLng = location.destLng;
 
-  final pLat = location.pickupLat ?? defaultLat;
-  final pLng = location.pickupLng ?? defaultLng;
-  final dLat = location.destLat ?? defaultLat;
-  final dLng = location.destLng ?? defaultLng;
-
-  if (pLat == dLat && pLng == dLng) {
+  if (pLat == null || pLng == null || dLat == null || dLng == null || (pLat == dLat && pLng == dLng)) {
     return null;
   }
 
@@ -107,11 +105,49 @@ class UserProfile {
 class UserProfileNotifier extends StateNotifier<UserProfile> {
   UserProfileNotifier()
       : super(UserProfile(
-          name: "Anubhav Tripathi",
-          phone: "+91 98765 43210",
-          rating: 4.9,
-          avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb",
-        ));
+          name: "",
+          phone: "",
+          rating: 5.0,
+          avatarUrl: "",
+        )) {
+    loadFromToken();
+    fetchProfile();
+  }
+
+  Future<void> fetchProfile() async {
+    try {
+      final res = await ApiClient().get('/profile');
+      if (res != null && res is Map<String, dynamic>) {
+        final profileData = res['data'] ?? res;
+        state = UserProfile(
+          name: profileData['name'] ?? profileData['fullName'] ?? state.name,
+          phone: profileData['phone'] ?? profileData['phoneNumber'] ?? state.phone,
+          rating: (profileData['rating'] as num?)?.toDouble() ?? state.rating,
+          avatarUrl: profileData['avatarUrl'] ?? profileData['avatar'] ?? state.avatarUrl,
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<void> loadFromToken() async {
+    try {
+      final token = await ApiClient().getToken();
+      if (token != null) {
+        final payload = _decodeJwt(token);
+        if (payload != null) {
+          final phone = payload['phone'] as String? ?? state.phone;
+          final rawName = payload['name'] as String?;
+          final name = (rawName != null && rawName.isNotEmpty) ? rawName : state.name;
+          state = UserProfile(
+            name: name,
+            phone: phone,
+            rating: state.rating,
+            avatarUrl: state.avatarUrl,
+          );
+        }
+      }
+    } catch (_) {}
+  }
 
   void updateName(String name) {
     state = UserProfile(
@@ -120,6 +156,7 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
       rating: state.rating,
       avatarUrl: state.avatarUrl,
     );
+    updateProfile(name: name);
   }
 
   void updateAvatarUrl(String avatarUrl) {
@@ -129,6 +166,35 @@ class UserProfileNotifier extends StateNotifier<UserProfile> {
       rating: state.rating,
       avatarUrl: avatarUrl,
     );
+    updateProfile(avatarUrl: avatarUrl);
+  }
+
+  Future<void> updateProfile({String? name, String? phone, String? avatarUrl}) async {
+    state = UserProfile(
+      name: name ?? state.name,
+      phone: phone ?? state.phone,
+      rating: state.rating,
+      avatarUrl: avatarUrl ?? state.avatarUrl,
+    );
+    try {
+      await ApiClient().put('/profile', {
+        if (name != null) 'name': name,
+        if (phone != null) 'phone': phone,
+        if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      });
+    } catch (_) {}
+  }
+}
+
+Map<String, dynamic>? _decodeJwt(String token) {
+  try {
+    final parts = token.split('.');
+    if (parts.length != 3) return null;
+    final normalized = base64Url.normalize(parts[1]);
+    final payloadString = utf8.decode(base64Url.decode(normalized));
+    return jsonDecode(payloadString) as Map<String, dynamic>;
+  } catch (_) {
+    return null;
   }
 }
 
@@ -140,15 +206,12 @@ final fareEstimateProvider = FutureProvider<Map<String, dynamic>?>((ref) async {
   final location = ref.watch(locationProvider);
   final currentLoc = ref.watch(currentLocationProvider);
 
-  final defaultLat = currentLoc.value?.latitude ?? 26.8500;
-  final defaultLng = currentLoc.value?.longitude ?? 80.9400;
+  final pLat = location.pickupLat ?? currentLoc.value?.latitude;
+  final pLng = location.pickupLng ?? currentLoc.value?.longitude;
+  final dLat = location.destLat;
+  final dLng = location.destLng;
 
-  final pLat = location.pickupLat ?? defaultLat;
-  final pLng = location.pickupLng ?? defaultLng;
-  final dLat = location.destLat ?? defaultLat;
-  final dLng = location.destLng ?? defaultLng;
-
-  if (pLat == dLat && pLng == dLng) {
+  if (pLat == null || pLng == null || dLat == null || dLng == null || (pLat == dLat && pLng == dLng)) {
     return null;
   }
 
@@ -252,22 +315,53 @@ class SearchHistoryItem {
 }
 
 class SearchHistoryNotifier extends StateNotifier<List<SearchHistoryItem>> {
-  SearchHistoryNotifier() : super([]);
+  SearchHistoryNotifier() : super([]) {
+    fetchRecentSearches();
+  }
 
-  void addHistory(String address, double lat, double lng) {
+  Future<void> fetchRecentSearches() async {
+    try {
+      final res = await ApiClient().get('/recent-searches');
+      if (res != null && res is List) {
+        state = res.map((item) {
+          return SearchHistoryItem(
+            address: item['address'] ?? '',
+            latitude: (item['latitude'] as num?)?.toDouble() ?? 0.0,
+            longitude: (item['longitude'] as num?)?.toDouble() ?? 0.0,
+            timestamp: item['timestamp'] != null
+                ? DateTime.tryParse(item['timestamp'].toString()) ?? DateTime.now()
+                : DateTime.now(),
+          );
+        }).toList();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addHistory(String address, double lat, double lng) async {
     if (address.isEmpty) return;
     state = [
       SearchHistoryItem(address: address, latitude: lat, longitude: lng, timestamp: DateTime.now()),
       ...state.where((item) => item.address != address)
     ].take(10).toList();
+
+    try {
+      await ApiClient().post('/recent-searches', {
+        'address': address,
+        'latitude': lat,
+        'longitude': lng,
+      });
+    } catch (_) {}
   }
 
   void clearHistory() {
     state = [];
   }
 
-  void removeHistory(String address) {
+  Future<void> removeHistory(String address) async {
     state = state.where((item) => item.address != address).toList();
+    try {
+      await ApiClient().delete('/recent-searches?address=${Uri.encodeComponent(address)}');
+    } catch (_) {}
   }
 }
 
@@ -276,32 +370,90 @@ final searchHistoryProvider = StateNotifierProvider<SearchHistoryNotifier, List<
 });
 
 class BookmarkItem {
+  final String? id;
   final String label;
   final String address;
   final double latitude;
   final double longitude;
 
   BookmarkItem({
+    this.id,
     required this.label,
     required this.address,
     required this.latitude,
     required this.longitude,
   });
+
+  factory BookmarkItem.fromJson(Map<String, dynamic> json) {
+    return BookmarkItem(
+      id: json['id']?.toString(),
+      label: json['label'] ?? json['name'] ?? 'Saved Place',
+      address: json['address'] ?? '',
+      latitude: (json['latitude'] ?? json['lat'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] ?? json['lng'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
 }
 
 class BookmarksNotifier extends StateNotifier<List<BookmarkItem>> {
-  BookmarksNotifier() : super([]);
-
-  void addBookmark(String label, String address, double lat, double lng) {
-    if (label.isEmpty || address.isEmpty) return;
-    state = [
-      ...state.where((item) => item.address != address),
-      BookmarkItem(label: label, address: address, latitude: lat, longitude: lng)
-    ];
+  BookmarksNotifier() : super([]) {
+    fetchSavedPlaces();
   }
 
-  void removeBookmark(String address) {
-    state = state.where((item) => item.address != address).toList();
+  Future<void> fetchSavedPlaces() async {
+    try {
+      final response = await ApiClient().get('/saved-places');
+      if (response != null && response is List) {
+        state = response.map((item) => BookmarkItem.fromJson(item as Map<String, dynamic>)).toList();
+      }
+    } catch (e) {
+      debugPrint("Saved places fetch notice: $e");
+    }
+  }
+
+  Future<void> addBookmark(String label, String address, double lat, double lng) async {
+    if (label.isEmpty || address.isEmpty) return;
+
+    final tempItem = BookmarkItem(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      label: label,
+      address: address,
+      latitude: lat,
+      longitude: lng,
+    );
+    state = [...state.where((item) => item.address != address), tempItem];
+
+    try {
+      final response = await ApiClient().post('/saved-places', {
+        'label': label,
+        'address': address,
+        'latitude': lat,
+        'longitude': lng,
+      });
+
+      if (response != null && response['id'] != null) {
+        await fetchSavedPlaces();
+      }
+    } catch (e) {
+      debugPrint("Failed to post saved place to backend: $e");
+    }
+  }
+
+  Future<void> removeBookmark(String idOrAddress) async {
+    final target = state.firstWhere(
+      (item) => item.id == idOrAddress || item.address == idOrAddress,
+      orElse: () => BookmarkItem(label: '', address: '', latitude: 0, longitude: 0),
+    );
+
+    state = state.where((item) => item.id != idOrAddress && item.address != idOrAddress).toList();
+
+    if (target.id != null && target.id!.isNotEmpty) {
+      try {
+        await ApiClient().delete('/saved-places/${target.id}');
+      } catch (e) {
+        debugPrint("Failed to delete saved place from backend: $e");
+      }
+    }
   }
 }
 
@@ -473,19 +625,16 @@ class BookingNotifier extends StateNotifier<BookingState> {
   }
 
   Future<void> _connectWebSocket() async {
-    final hosts = [
-      if (!kIsWeb && Platform.isAndroid) '10.0.2.2',
-      'localhost',
-      '127.0.0.1',
-    ];
+    final token = await ApiClient().getToken();
+    final headers = token != null ? {'Authorization': 'Bearer $token'} : null;
+    final query = token != null ? '/ride-tracking?token=$token' : '/ride-tracking';
+    final urls = _getWebSocketUrls(query);
 
-    for (final host in hosts) {
+    for (final wsUrl in urls) {
       try {
-        final token = await ApiClient().getToken();
-        final headers = token != null ? {'Authorization': 'Bearer $token'} : null;
-        final wsUrl = 'ws://$host:8080/ride-tracking';
         debugPrint("Attempting Booking connection to $wsUrl");
         _webSocket = await WebSocket.connect(wsUrl, headers: headers).timeout(const Duration(seconds: 2));
+        debugPrint("✅ Booking WebSocket connected successfully to $wsUrl");
         
         if (!mounted) return;
         state = state.copyWith(webSocketStatus: WebSocketStatus.connected);
@@ -527,7 +676,7 @@ class BookingNotifier extends StateNotifier<BookingState> {
         );
         return; // Connection succeeded, exit loop
       } catch (e) {
-        debugPrint("Booking connection to $host failed: $e");
+        debugPrint("Booking connection to $wsUrl failed: $e");
       }
     }
 
@@ -655,75 +804,6 @@ class BookingNotifier extends StateNotifier<BookingState> {
       vehicleName: vName,
       vehicleModel: vModel,
     );
-
-    // Fetch arrival route polyline from Ola Maps Directions API
-    List<List<double>> arrivalPolylinePoints = [];
-    try {
-      const apiKey = '6ZPQI6AaSeXkgvIhqIQaxyEfscr8oXvgRTEpwPYj';
-      final directionsUrl = 'https://api.olamaps.io/routing/v1/directions?origin=$driverStartLat,$driverStartLng&destination=$pickupLat,$pickupLng&api_key=$apiKey';
-      final response = await http.post(
-        Uri.parse(directionsUrl),
-        headers: {
-          'X-Request-Id': 'mr-rideo-arrival-${DateTime.now().millisecondsSinceEpoch}',
-        },
-      ).timeout(const Duration(seconds: 4));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data != null && data['routes'] != null && (data['routes'] as List).isNotEmpty) {
-          final firstRoute = data['routes'][0];
-          final overviewPolyline = firstRoute['overview_polyline'] as String?;
-          if (overviewPolyline != null) {
-            arrivalPolylinePoints = _decodePolyline(overviewPolyline);
-          }
-        }
-      }
-    } catch (e) {
-      debugPrint("Error fetching arrival polyline: $e");
-    }
-
-    // Animate driver toward pickup over 5 seconds (5 steps × 1s)
-    const totalArrivalSteps = 5;
-    _simStep = 0;
-    _cancelSimTimer();
-
-    _driverSimTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (state.status != RideBookingStatus.driverArriving || !mounted) {
-        timer.cancel();
-        return;
-      }
-      _simStep++;
-
-      double newLat;
-      double newLng;
-
-      if (arrivalPolylinePoints.isNotEmpty) {
-        final int index = (_simStep * (arrivalPolylinePoints.length - 1) / totalArrivalSteps).round();
-        final clampedIndex = index.clamp(0, arrivalPolylinePoints.length - 1);
-        newLat = arrivalPolylinePoints[clampedIndex][0];
-        newLng = arrivalPolylinePoints[clampedIndex][1];
-      } else {
-        // Fallback to straight line
-        newLat = driverStartLat + (((pickupLat - driverStartLat) / totalArrivalSteps) * _simStep);
-        newLng = driverStartLng + (((pickupLng - driverStartLng) / totalArrivalSteps) * _simStep);
-      }
-
-      state = state.copyWith(
-        driverLat: newLat,
-        driverLng: newLng,
-      );
-
-      if (_simStep >= totalArrivalSteps) {
-        timer.cancel();
-        _driverSimTimer = null;
-        // Driver has arrived at pickup — start ride
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (state.status == RideBookingStatus.driverArriving) {
-            startRide();
-          }
-        });
-      }
-    });
   }
 
   List<List<double>> _decodePolyline(String encoded) {
@@ -759,20 +839,8 @@ class BookingNotifier extends StateNotifier<BookingState> {
   void startRide() {
     _cancelSimTimer();
     final location = _ref.read(locationProvider);
-    final pickupLat = location.pickupLat ?? 26.8500;
-    final pickupLng = location.pickupLng ?? 80.9400;
-    final destLat = location.destLat ?? 26.8600;
-    final destLng = location.destLng ?? 80.9500;
-
-    final metrics = _ref.read(routeMetricsProvider).value;
-    List<List<double>> polylinePoints = [];
-    if (metrics?.overviewPolyline != null) {
-      try {
-        polylinePoints = _decodePolyline(metrics!.overviewPolyline!);
-      } catch (e) {
-        debugPrint("Error decoding polyline in simulation: $e");
-      }
-    }
+    final pickupLat = location.pickupLat;
+    final pickupLng = location.pickupLng;
 
     state = state.copyWith(
       status: RideBookingStatus.inProgress,
@@ -780,45 +848,6 @@ class BookingNotifier extends StateNotifier<BookingState> {
       driverLat: pickupLat,
       driverLng: pickupLng,
     );
-
-    // Animate driver from pickup toward destination over 8 seconds
-    const totalTripSteps = 8;
-    _simStep = 0;
-
-    _driverSimTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (state.status != RideBookingStatus.inProgress || !mounted) {
-        timer.cancel();
-        return;
-      }
-      _simStep++;
-
-      double newLat;
-      double newLng;
-
-      if (polylinePoints.isNotEmpty) {
-        // Map step to index in the polyline coordinates list
-        final int index = (_simStep * (polylinePoints.length - 1) / totalTripSteps).round();
-        // Clamp index to avoid index out of bounds
-        final clampedIndex = index.clamp(0, polylinePoints.length - 1);
-        newLat = polylinePoints[clampedIndex][0];
-        newLng = polylinePoints[clampedIndex][1];
-      } else {
-        // Fallback to straight line
-        newLat = pickupLat + (((destLat - pickupLat) / totalTripSteps) * _simStep);
-        newLng = pickupLng + (((destLng - pickupLng) / totalTripSteps) * _simStep);
-      }
-
-      state = state.copyWith(
-        driverLat: newLat,
-        driverLng: newLng,
-      );
-
-      if (_simStep >= totalTripSteps) {
-        timer.cancel();
-        _driverSimTimer = null;
-        completeRide();
-      }
-    });
   }
 
   void completeRide() {
@@ -888,72 +917,18 @@ final bookingProvider = StateNotifierProvider<BookingNotifier, BookingState>((re
 
 // Trip History Notifier & Provider
 class TripHistoryNotifier extends StateNotifier<List<Map<String, dynamic>>> {
-  TripHistoryNotifier() : super([
-    {
-      "id": "TRP-837482",
-      "date": "Today, 10:30 AM",
-      "pickup": "HSR Layout Sector 3",
-      "destination": "Kempegowda International Airport",
-      "vehicle": "Prime Sedan",
-      "vehicleIcon": LucideIcons.car,
-      "price": 849.00,
-      "status": "Completed",
-      "driver": "Ramesh Kumar",
-      "driverRating": 4.9,
-      "duration": "45 mins",
-      "distance": "38.2 km",
-      "promo": "AIRPORT150",
-      "promoDiscount": 150.00,
-    },
-    {
-      "id": "TRP-836109",
-      "date": "Yesterday, 6:15 PM",
-      "pickup": "Indiranagar 100ft Road",
-      "destination": "Nexus Mall Koramangala",
-      "vehicle": "Mini",
-      "vehicleIcon": LucideIcons.car,
-      "price": 182.50,
-      "status": "Completed",
-      "driver": "Anil Singh",
-      "driverRating": 4.8,
-      "duration": "22 mins",
-      "distance": "7.4 km",
-      "promo": null,
-      "promoDiscount": 0.00,
-    },
-    {
-      "id": "TRP-832104",
-      "date": "22 June, 8:45 AM",
-      "pickup": "Whitefield ITPL Main Gate",
-      "destination": "Phoenix Marketcity Mall",
-      "vehicle": "Moto",
-      "vehicleIcon": LucideIcons.bike,
-      "price": 75.00,
-      "status": "Completed",
-      "driver": "Vijay Prasad",
-      "driverRating": 4.7,
-      "duration": "14 mins",
-      "distance": "4.8 km",
-      "promo": "MOTO50",
-      "promoDiscount": 15.00,
-    },
-    {
-      "id": "TRP-831102",
-      "date": "20 June, 11:20 PM",
-      "pickup": "MG Road Metro Station",
-      "destination": "Indiranagar Metro Station",
-      "vehicle": "Mini",
-      "vehicleIcon": LucideIcons.car,
-      "price": 0.00,
-      "status": "Cancelled",
-      "driver": "No driver assigned",
-      "driverRating": 0.0,
-      "duration": "0 mins",
-      "distance": "0.0 km",
-      "promo": null,
-      "promoDiscount": 0.00,
-    },
-  ]);
+  TripHistoryNotifier() : super([]) {
+    fetchTripHistory();
+  }
+
+  Future<void> fetchTripHistory() async {
+    try {
+      final res = await ApiClient().get('/rides/history');
+      if (res != null && res is List) {
+        state = res.cast<Map<String, dynamic>>();
+      }
+    } catch (_) {}
+  }
 
   void addTrip(Map<String, dynamic> trip) {
     state = [trip, ...state];
@@ -987,15 +962,24 @@ class WalletState {
 class WalletNotifier extends StateNotifier<WalletState> {
   WalletNotifier()
       : super(WalletState(
-          balance: 345.50,
-          transactions: [
-            "Ride to Tech Park - ₹145.00 deducted",
-            "Added Money via UPI - ₹500.00 added",
-            "Ride to Airport - ₹280.00 deducted",
-          ],
-        ));
+          balance: 0.0,
+          transactions: [],
+        )) {
+    fetchWallet();
+  }
 
-  void addMoney(double amount) {
+  Future<void> fetchWallet() async {
+    try {
+      final res = await ApiClient().get('/wallet');
+      if (res != null && res is Map<String, dynamic>) {
+        final bal = (res['balance'] as num?)?.toDouble() ?? 0.0;
+        final txs = (res['transactions'] as List?)?.map((t) => t.toString()).toList() ?? [];
+        state = WalletState(balance: bal, transactions: txs);
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addMoney(double amount) async {
     state = WalletState(
       balance: state.balance + amount,
       transactions: [
@@ -1003,6 +987,9 @@ class WalletNotifier extends StateNotifier<WalletState> {
         ...state.transactions
       ],
     );
+    try {
+      await ApiClient().post('/wallet/add-money', {'amount': amount});
+    } catch (_) {}
   }
 
   void deductMoney(double amount, String tripName) {
@@ -1027,24 +1014,47 @@ class SosContact {
   final String phone;
 
   SosContact({required this.id, required this.name, required this.phone});
+
+  factory SosContact.fromJson(Map<String, dynamic> json) {
+    return SosContact(
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      phone: json['phone'] ?? json['phoneNumber'] ?? '',
+    );
+  }
 }
 
 class SosContactsNotifier extends StateNotifier<List<SosContact>> {
-  SosContactsNotifier()
-      : super([
-          SosContact(id: "1", name: "Papa (Primary)", phone: "+91 98765 98765"),
-          SosContact(id: "2", name: "Riya (Sister)", phone: "+91 91234 56789"),
-        ]);
-
-  void addContact(String name, String phone) {
-    state = [
-      ...state,
-      SosContact(id: DateTime.now().toString(), name: name, phone: phone),
-    ];
+  SosContactsNotifier() : super([]) {
+    fetchContacts();
   }
 
-  void removeContact(String id) {
+  Future<void> fetchContacts() async {
+    try {
+      final res = await ApiClient().get('/sos/contacts');
+      if (res != null && res is List) {
+        state = res.map((c) => SosContact.fromJson(c)).toList();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addContact(String name, String phone) async {
+    final tempContact = SosContact(id: DateTime.now().toString(), name: name, phone: phone);
+    state = [...state, tempContact];
+
+    try {
+      await ApiClient().post('/sos/contact', {
+        'name': name,
+        'phone': phone,
+      });
+    } catch (_) {}
+  }
+
+  Future<void> removeContact(String id) async {
     state = state.where((c) => c.id != id).toList();
+    try {
+      await ApiClient().delete('/sos/contact/$id');
+    } catch (_) {}
   }
 }
 
@@ -1069,30 +1079,64 @@ class PaymentMethod {
       isDefault: isDefault ?? this.isDefault,
     );
   }
+
+  factory PaymentMethod.fromJson(Map<String, dynamic> json) {
+    return PaymentMethod(
+      id: json['id']?.toString() ?? '',
+      type: json['type'] ?? 'card',
+      label: json['label'] ?? json['cardNumber'] ?? 'Saved Method',
+      isDefault: json['isDefault'] ?? false,
+    );
+  }
 }
 
 class PaymentMethodsNotifier extends StateNotifier<List<PaymentMethod>> {
-  PaymentMethodsNotifier()
-      : super([
-          PaymentMethod(id: "1", type: "card", label: "HDFC Visa •••• 4820", isDefault: true),
-          PaymentMethod(id: "2", type: "upi", label: "tripathi@okaxis", isDefault: false),
-        ]);
+  PaymentMethodsNotifier() : super([]) {
+    fetchPaymentMethods();
+  }
 
-  void addCard(String lastFour) {
+  Future<void> fetchPaymentMethods() async {
+    try {
+      final res = await ApiClient().get('/wallet/payment-methods');
+      if (res != null && res is List) {
+        state = res.map((p) => PaymentMethod.fromJson(p)).toList();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> addCard(String lastFour) async {
     state = [
       ...state.map((e) => e.copyWith(isDefault: false)),
       PaymentMethod(id: DateTime.now().toString(), type: "card", label: "Card •••• $lastFour", isDefault: true),
     ];
+    try {
+      await ApiClient().post('/wallet/payment-methods', {
+        'type': 'card',
+        'lastFour': lastFour,
+      });
+    } catch (_) {}
   }
 
-  void addUpi(String upiId) {
+  Future<void> addUpi(String upiId) async {
     state = [
       ...state.map((e) => e.copyWith(isDefault: false)),
       PaymentMethod(id: DateTime.now().toString(), type: "upi", label: upiId, isDefault: true),
     ];
+    try {
+      await ApiClient().post('/wallet/payment-methods', {
+        'type': 'upi',
+        'upiId': upiId,
+      });
+    } catch (_) {}
   }
 
-  void deleteMethod(String id) {
+  void setDefault(String id) {
+    state = state.map((item) {
+      return item.copyWith(isDefault: item.id == id);
+    }).toList();
+  }
+
+  Future<void> deleteMethod(String id) async {
     final wasDefault = state.firstWhere((element) => element.id == id, orElse: () => state.first).isDefault;
     state = state.where((m) => m.id != id).toList();
     if (wasDefault && state.isNotEmpty) {
@@ -1101,18 +1145,19 @@ class PaymentMethodsNotifier extends StateNotifier<List<PaymentMethod>> {
         ...state.sublist(1),
       ];
     }
+    try {
+      await ApiClient().delete('/wallet/payment-methods/$id');
+    } catch (_) {}
   }
 
-  void setDefault(String id) {
-    state = state.map((m) => m.copyWith(isDefault: m.id == id)).toList();
-  }
+  Future<void> removeMethod(String id) => deleteMethod(id);
 }
 
 final paymentMethodsProvider = StateNotifierProvider<PaymentMethodsNotifier, List<PaymentMethod>>((ref) {
   return PaymentMethodsNotifier();
 });
 
-// Support Tickets state models & providers
+// Support Tickets Notifier & Provider
 class SupportTicket {
   final String id;
   final String category;
@@ -1130,28 +1175,41 @@ class SupportTicket {
 }
 
 class SupportTicketsNotifier extends StateNotifier<List<SupportTicket>> {
-  SupportTicketsNotifier()
-      : super([
-          SupportTicket(
-            id: "TCK-4820",
-            category: "Refund Issue",
-            message: "Double charged for ride TRP-831102 on Indiranagar Route.",
-            date: "22 June, 04:30 PM",
-            status: "Resolved",
-          ),
-        ]);
+  SupportTicketsNotifier() : super([]) {
+    fetchTickets();
+  }
 
-  void raiseTicket(String category, String message) {
-    state = [
-      SupportTicket(
-        id: "TCK-${4821 + state.length}",
-        category: category,
-        message: message,
-        date: "Just now",
-        status: "Pending",
-      ),
-      ...state,
-    ];
+  Future<void> fetchTickets() async {
+    try {
+      final res = await ApiClient().get('/support/tickets');
+      if (res != null && res is List) {
+        state = res.map((t) => SupportTicket(
+          id: t['id']?.toString() ?? 'TCK-${Random().nextInt(9000) + 1000}',
+          category: t['category'] ?? 'General',
+          message: t['message'] ?? '',
+          date: t['date'] ?? 'Recently',
+          status: t['status'] ?? 'Pending',
+        )).toList();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> raiseTicket(String category, String message) async {
+    final tempTicket = SupportTicket(
+      id: "TCK-${4821 + state.length}",
+      category: category,
+      message: message,
+      date: "Just now",
+      status: "Pending",
+    );
+    state = [tempTicket, ...state];
+
+    try {
+      await ApiClient().post('/support/ticket', {
+        'category': category,
+        'message': message,
+      });
+    } catch (_) {}
   }
 }
 
@@ -1159,10 +1217,25 @@ final supportTicketsProvider = StateNotifierProvider<SupportTicketsNotifier, Lis
   return SupportTicketsNotifier();
 });
 
+// Promo Validation Function
+Future<Map<String, dynamic>?> validatePromoCode(String code) async {
+  try {
+    final res = await ApiClient().post('/promo/validate', {'code': code});
+    if (res != null && res is Map<String, dynamic>) {
+      return res;
+    }
+  } catch (_) {}
+  return null;
+}
+
 class CurrentLocationNotifier extends StateNotifier<AsyncValue<Position>> {
   CurrentLocationNotifier() : super(const AsyncValue.loading()) {
     _init();
   }
+
+  /// Call this after the user grants location permission to re-fetch the position.
+  void refresh() => _init();
+
 
   void _init() async {
     try {
@@ -1266,17 +1339,22 @@ class NearbyDriversNotifier extends StateNotifier<List<NearbyDriver>> {
   }
 
   void _connect() async {
-    final hosts = [
-      if (!kIsWeb && Platform.isAndroid) '10.0.2.2',
-      'localhost',
-      '127.0.0.1',
-    ];
+    final token = await ApiClient().getToken();
+    final profile = _ref.read(userProfileProvider);
+    final rawRiderId = profile.phone.isNotEmpty ? profile.phone : 'rider-123';
+    final riderId = Uri.encodeComponent(rawRiderId);
+    final headers = token != null ? {'Authorization': 'Bearer $token'} : null;
+    final encodedToken = token != null ? Uri.encodeComponent(token) : null;
+    final queryPath = encodedToken != null
+        ? '/ride-tracking?riderId=$riderId&token=$encodedToken'
+        : '/ride-tracking?riderId=$riderId';
+    final urls = _getWebSocketUrls(queryPath);
 
-    for (final host in hosts) {
+    for (final wsUrl in urls) {
       try {
-        final wsUrl = 'ws://$host:8080/ride-tracking?riderId=rider-123';
         debugPrint("Attempting NearbyDrivers connection to $wsUrl");
-        _webSocket = await WebSocket.connect(wsUrl).timeout(const Duration(seconds: 2));
+        _webSocket = await WebSocket.connect(wsUrl, headers: headers).timeout(const Duration(seconds: 2));
+        debugPrint("✅ NearbyDrivers WebSocket connected successfully to $wsUrl");
         
         _webSocket!.listen(
           (message) {
@@ -1310,7 +1388,7 @@ class NearbyDriversNotifier extends StateNotifier<List<NearbyDriver>> {
         _sendSubscription();
         return; // Connection succeeded, exit loop
       } catch (e) {
-        debugPrint("NearbyDrivers connection to $host failed: $e");
+        debugPrint("NearbyDrivers connection to $wsUrl failed: $e");
       }
     }
 
@@ -1349,5 +1427,32 @@ class NearbyDriversNotifier extends StateNotifier<List<NearbyDriver>> {
 final nearbyDriversProvider = StateNotifierProvider<NearbyDriversNotifier, List<NearbyDriver>>((ref) {
   return NearbyDriversNotifier(ref);
 });
+
+List<String> _getWebSocketUrls(String pathAndQuery) {
+  final baseApi = ApiClient().baseUrl;
+  final urls = <String>[];
+
+  try {
+    final uri = Uri.parse(baseApi);
+    if (uri.host.isNotEmpty) {
+      final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
+      final portStr = uri.hasPort ? ':${uri.port}' : '';
+      urls.add('$scheme://${uri.host}$portStr$pathAndQuery');
+    }
+  } catch (_) {}
+
+  final fallbackHosts = [
+    '222.167.207.239',
+    if (!kIsWeb && Platform.isAndroid) '10.0.2.2',
+    'localhost',
+    '127.0.0.1',
+  ];
+
+  for (final host in fallbackHosts) {
+    urls.add('ws://$host:8080$pathAndQuery');
+  }
+
+  return urls;
+}
 
 

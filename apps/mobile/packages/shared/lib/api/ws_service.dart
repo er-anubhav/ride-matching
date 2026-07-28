@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'api_client.dart';
 
 class WsService {
   static final WsService _instance = WsService._internal();
@@ -26,10 +27,16 @@ class WsService {
     if (envWsUrl.isNotEmpty) {
       return envWsUrl;
     }
-    if (kIsWeb) {
-      return 'ws://localhost:8080/ws';
-    }
-    return Platform.isAndroid ? 'ws://10.0.2.2:8080/ws' : 'ws://localhost:8080/ws';
+    final baseApi = ApiClient().baseUrl;
+    try {
+      final uri = Uri.parse(baseApi);
+      if (uri.host.isNotEmpty) {
+        final scheme = uri.scheme == 'https' ? 'wss' : 'ws';
+        final portStr = uri.hasPort ? ':${uri.port}' : '';
+        return '$scheme://${uri.host}$portStr/ws';
+      }
+    } catch (_) {}
+    return 'ws://222.167.207.239:8080/ws';
   }
 
   Future<void> connect() async {

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -33,6 +34,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     // Redirect after delay based on JWT token authentication status
     Future.delayed(const Duration(milliseconds: 2000), () async {
       if (!mounted) return;
+
+      // Request location permission proactively so the map screen is ready
+      await _requestLocationPermission();
+
+      if (!mounted) return;
       final token = await ApiClient().getToken();
       if (mounted) {
         if (token != null && token.isNotEmpty) {
@@ -43,6 +49,22 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       }
     });
 
+  }
+
+  /// Ensures location services are enabled and permission is granted.
+  /// Shows the system permission dialog if needed.
+  Future<void> _requestLocationPermission() async {
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return; // Let the provider handle the error state
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        await Geolocator.requestPermission();
+      }
+    } catch (_) {
+      // Silently ignore — the provider will surface the error on the map
+    }
   }
 
   @override
@@ -84,14 +106,14 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
 }
 
 // 2. Phone Entry Screen
-class PhoneEntryScreen extends StatefulWidget {
+class PhoneEntryScreen extends ConsumerStatefulWidget {
   const PhoneEntryScreen({super.key});
 
   @override
-  State<PhoneEntryScreen> createState() => _PhoneEntryScreenState();
+  ConsumerState<PhoneEntryScreen> createState() => _PhoneEntryScreenState();
 }
 
-class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
+class _PhoneEntryScreenState extends ConsumerState<PhoneEntryScreen> {
   final TextEditingController _phoneController = TextEditingController();
   bool _isValid = false;
   bool _isLoading = false;
@@ -106,7 +128,6 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
     });
   }
 
-  @override
   Timer? _longPressTimer;
 
   @override
@@ -141,6 +162,11 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
       });
       if (response != null && response['token'] != null) {
         await ApiClient().saveToken(response['token']);
+        final user = response['user'] as Map<String, dynamic>?;
+        ref.read(userProfileProvider.notifier).updateProfile(
+              phone: user?['phone'] ?? '+919999999999',
+              name: user?['name'] ?? 'Test Rider',
+            );
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('⚡ 10s Secret Gesture: Test Rider Logged In!')),
@@ -297,15 +323,15 @@ class _PhoneEntryScreenState extends State<PhoneEntryScreen> {
   }
 }
 
-class OtpVerificationScreen extends StatefulWidget {
+class OtpVerificationScreen extends ConsumerStatefulWidget {
   final String phone;
   const OtpVerificationScreen({super.key, required this.phone});
 
   @override
-  State<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
+  ConsumerState<OtpVerificationScreen> createState() => _OtpVerificationScreenState();
 }
 
-class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
+class _OtpVerificationScreenState extends ConsumerState<OtpVerificationScreen> {
   bool _isLoading = false;
 
   Future<void> _verifyOtp(String otp) async {
@@ -322,6 +348,11 @@ class _OtpVerificationScreenState extends State<OtpVerificationScreen> {
 
       if (response != null && response['token'] != null) {
         await ApiClient().saveToken(response['token']);
+        final user = response['user'] as Map<String, dynamic>?;
+        ref.read(userProfileProvider.notifier).updateProfile(
+              phone: user?['phone'] ?? widget.phone,
+              name: user?['name'],
+            );
         if (mounted) {
           context.go('/auth/profile-setup');
         }
