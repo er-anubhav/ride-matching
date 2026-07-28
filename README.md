@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🚖 UrbanPulse — Enterprise Mobility Platform
+# UrbanPulse — Enterprise Mobility Platform
 
 [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen?style=for-the-badge&logo=github-actions)](https://github.com/)
 [![Production Readiness](https://img.shields.io/badge/Production%20Readiness-98%25%20Release%20Candidate-emerald?style=for-the-badge&logo=rocket)](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/audit_reports/)
@@ -17,55 +17,55 @@
   <i>Engineered with high-throughput Go matching engines, native OlaMaps spatial routing, dynamic city pricing matrix, and real-time WebSocket ride tracking.</i>
 </p>
 
-[System Architecture](#-system-architecture) •
-[Subsystems](#-subsystem-overview) •
-[Key Features](#-key-features) •
-[Setup Guide](#-local-development-setup) •
-[Environment Variables](#-environment-configuration) •
-[Audit Suite](#-master-technical-audit-suite)
+[System Architecture](#system-architecture) •
+[Subsystems](#subsystem-overview) •
+[Key Features](#key-features) •
+[Setup Guide](#local-development-setup) •
+[Environment Variables](#environment-configuration) •
+[Audit Suite](#master-technical-audit-suite)
 
 ---
 
 </div>
 
-## 📌 Executive Overview
+## Executive Overview
 
 **UrbanPulse** is a high-performance, enterprise-grade mobility platform designed to deliver seamless, transparent, and scalable ride-hailing services across Indian urban centers. Built with a decoupled microservice-inspired architecture, the platform connects passenger mobile clients, driver partner applications, operations admin dashboards, and dynamic dispatch engines in real time.
 
-### 🌟 Key Platform Highlights
-- ⚡ **$<1.2\text{s}$ Spatial Matching Engine**: High-concurrency Go service utilizing Redis spatial geo-indexing (`GEOADD`, `GEORADIUS`) for sub-second driver assignment within $3.0\text{ km}$ radiuses.
-- 🗺️ **Native OlaMaps Integration**: Deep integration with OlaMaps Places SDK for accurate reverse geocoding, turn-by-turn route geometry rendering, and precise fare estimations.
-- 💰 **Dynamic City Pricing Matrix**: Fine-grained city-based fare management backed by PostgreSQL (`pricing.city_configs`) with dynamic per-km, per-minute, and minimum fare tiers (Delhi `CITY_DELHI` pre-configured).
-- 🛡️ **End-to-End Safety Guards**: 4-digit passenger PIN verification before ride commencement, native in-app emergency dialer, and authenticated driver KYC processing via Cloudflare R2 binary storage.
-- 📊 **One-Click Analytics & Reports**: Admin portal equipped with live dispatch monitoring, KYC approval workflows, and instant CSV export capabilities for financial & ride ledgers.
+### Key Platform Highlights
+- **$<1.2\text{s}$ Spatial Matching Engine**: High-concurrency Go service utilizing Redis spatial geo-indexing (`GEOADD`, `GEORADIUS`) for sub-second driver assignment within $3.0\text{ km}$ radiuses.
+- **Native OlaMaps Integration**: Deep integration with OlaMaps Places SDK for accurate reverse geocoding, turn-by-turn route geometry rendering, and precise fare estimations.
+- **Dynamic City Pricing Matrix**: Fine-grained city-based fare management backed by PostgreSQL (`pricing.city_configs`) with dynamic per-km, per-minute, and minimum fare tiers (Delhi `CITY_DELHI` pre-configured).
+- **End-to-End Safety Guards**: 4-digit passenger PIN verification before ride commencement, native in-app emergency dialer, and authenticated driver KYC processing via Cloudflare R2 binary storage.
+- **One-Click Analytics & Reports**: Admin portal equipped with live dispatch monitoring, KYC approval workflows, and instant CSV export capabilities for financial & ride ledgers.
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
-    subgraph Clients["📱 Mobile & Web Clients"]
-        RA["📱 Rider App (Flutter + Riverpod)"]
-        DA["🚗 Driver App (Flutter + Riverpod)"]
-        AP["💻 Admin Portal (React 18 + TS)"]
+    subgraph Clients["Mobile & Web Clients"]
+        RA["Rider App (Flutter + Riverpod)"]
+        DA["Driver App (Flutter + Riverpod)"]
+        AP["Admin Portal (React 18 + TS)"]
     end
 
-    subgraph Gateway["⚡ API & Gateway Layer"]
+    subgraph Gateway["API & Gateway Layer"]
         API["Node.js / Fastify Gateway (Port 8080)"]
         WS["WebSocket Server (/ride-tracking)"]
     end
 
-    subgraph Services["⚙️ Backend Microservices"]
-        GME["🏎️ Go Spatial Matching Engine (Port 8081)"]
-        PE["💰 Pricing & Fare Engine"]
-        KYC["📄 KYC & R2 Storage Service"]
+    subgraph Services["Backend Microservices"]
+        GME["Go Spatial Matching Engine (Port 8081)"]
+        PE["Pricing & Fare Engine"]
+        KYC["KYC & R2 Storage Service"]
     end
 
-    subgraph Data["💾 Persistence Layer"]
-        PG[("🐘 PostgreSQL 16 / Prisma ORM")]
-        RD[("🔴 Redis 7 / PubSub & Geo-Index")]
-        R2[("☁️ Cloudflare R2 / Object Storage")]
+    subgraph Data["Persistence Layer"]
+        PG[("PostgreSQL 16 / Prisma ORM")]
+        RD[("Redis 7 / PubSub & Geo-Index")]
+        R2[("Cloudflare R2 / Object Storage")]
     end
 
     RA -->|"REST API (HTTP/2)"| API
@@ -85,7 +85,7 @@ flowchart TD
 
 ---
 
-## 📁 Subsystem Overview
+## Subsystem Overview
 
 The repository is structured as a clean monorepo architecture:
 
@@ -105,36 +105,36 @@ urban-pulse/
 
 ---
 
-## 🚀 Subsystems Breakdown
+## Subsystems Breakdown
 
-### 1. 📱 Rider Mobile Application (`apps/mobile/packages/rider_app`)
+### 1. Rider Mobile Application (`apps/mobile/packages/rider_app`)
 - **State Management**: Clean architecture powered by `flutter_riverpod` state providers ([`ui_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/providers/ui_state_providers.dart)).
 - **Booking Flow**: 3-tap ride request sheet with vehicle category picker (Bike, Auto, Economy Cab, Premium Cab) ([`home_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/home_screen.dart)).
 - **Maps & Routing**: Custom `OlaMapWidget` with smooth animated vehicle markers and polyline rendering ([`tracking_screen.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/tracking_screen.dart)).
 
-### 2. 🚗 Driver Partner Mobile Application (`apps/mobile/packages/driver_app`)
+### 2. Driver Partner Mobile Application (`apps/mobile/packages/driver_app`)
 - **Duty State Machine**: Instant Duty Online/Offline toggle with automatic WebSocket room registration ([`driver_state_providers.dart`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart)).
 - **Trip Lifecycle**: Audio-visual dispatch request modal $\rightarrow$ Turn-by-turn navigation $\rightarrow$ 4-digit passenger PIN verification $\rightarrow$ Trip completion & wallet update.
 - **KYC Onboarding**: Multipart binary upload for Aadhaar, DL, Vehicle RC, and Insurance to Cloudflare R2 bucket.
 
-### 3. 💻 Admin Operations Portal (`apps/admin`)
+### 3. Admin Operations Portal (`apps/admin`)
 - **Dashboard**: High-density management interface built with React 18, Tailwind CSS, and Lucide React icons ([`Dashboard.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/admin/src/components/Dashboard.tsx)).
 - **Live Dispatch Monitor**: Real-time grid displaying ongoing rides, driver coordinates, and ETA metrics ([`LiveTripMonitor.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/admin/src/components/LiveTripMonitor.tsx)).
 - **City Pricing Matrix**: Vehicle fare configurator with backend PostgreSQL persistence for Delhi (`CITY_DELHI`) ([`PricingConfigurator.tsx`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/admin/src/components/PricingConfigurator.tsx)).
 - **CSV Exporter**: One-click export button generating downloadable CSV reports for KYC, payments, and trip ledgers.
 
-### 4. ⚙️ Fastify Backend API (`backend`)
+### 4. Fastify Backend API (`backend`)
 - **Framework**: Fastify 4.x written in strict TypeScript.
 - **Data Access**: Prisma 5 ORM interfacing PostgreSQL 16 database.
 - **Authentication**: JWT token authentication with Fast2SMS phone OTP verification ([`modules/auth`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth)).
 
-### 5. 🏎️ Go Matching Engine (`matching-engine`)
+### 5. Go Matching Engine (`matching-engine`)
 - **Language**: Go (Golang 1.22).
 - **Dispatch Algorithm**: Sub-second spatial radius search utilizing Redis `GEORADIUS` to find available nearby drivers within $3.0\text{ km}$.
 
 ---
 
-## 🔧 Local Development Setup
+## Local Development Setup
 
 ### Prerequisites
 - **Node.js**: `v20.x` or higher
@@ -196,7 +196,7 @@ flutter run
 
 ---
 
-## ⚙️ Environment Configuration
+## Environment Configuration
 
 ### Backend Environment Variables (`backend/.env`)
 ```env
@@ -218,7 +218,7 @@ REACT_APP_API_BASE_URL=http://localhost:8080/api
 
 ---
 
-## 📊 Master Technical Audit Suite
+## Master Technical Audit Suite
 
 The platform has undergone 11 rigorous, evidence-based technical audits archived in [`audit_reports/`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/audit_reports/):
 
@@ -238,6 +238,6 @@ The platform has undergone 11 rigorous, evidence-based technical audits archived
 
 ---
 
-## 📜 License
+## License
 
 Copyright © 2026 **UrbanPulse Platform**. Proprietary & Confidential. All rights reserved.
