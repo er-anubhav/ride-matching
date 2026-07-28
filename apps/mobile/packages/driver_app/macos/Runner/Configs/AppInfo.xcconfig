@@ -8,7 +8,7 @@
 PRODUCT_NAME = driver_app
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.ridematching.driver.driverApp
+PRODUCT_BUNDLE_IDENTIFIER = com.urbanpulse.driver.driverApp
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2026 com.ridematching.driver. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2026 com.urbanpulse.driver. All rights reserved.

@@ -75,7 +75,7 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(bookingProvider.notifier).startSearch(
-        vehicleName: "Ride Matching Bike",
+        vehicleName: "UrbanPulse Bike",
         driverArrivalEta: "2 min",
         tripDurationEta: "10 min",
         price: 120.0,
@@ -90,7 +90,7 @@ void main() {
       addTearDown(container.dispose);
 
       container.read(bookingProvider.notifier).startSearch(
-        vehicleName: "Ride Matching Bike",
+        vehicleName: "UrbanPulse Bike",
         driverArrivalEta: "2 min",
         tripDurationEta: "10 min",
         price: 120.0,
@@ -241,7 +241,7 @@ void main() {
 
       // Start search and match driver, start ride
       container.read(bookingProvider.notifier).startSearch(
-        vehicleName: "Ride Matching Bike",
+        vehicleName: "UrbanPulse Bike",
         driverArrivalEta: "2 min",
         tripDurationEta: "10 min",
         price: 120.0,
@@ -256,7 +256,7 @@ void main() {
 
       final afterHistory = container.read(tripHistoryProvider);
       expect(afterHistory.length, beforeCount + 1);
-      expect(afterHistory.first['vehicle'], 'Ride Matching Bike');
+      expect(afterHistory.first['vehicle'], 'UrbanPulse Bike');
       expect(afterHistory.first['price'], 120.0);
     });
   });

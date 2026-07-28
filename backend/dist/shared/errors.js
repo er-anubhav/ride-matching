@@ -29,43 +29,43 @@ class AppError extends Error {
 exports.AppError = AppError;
 class BadRequestError extends AppError {
     constructor(detail, instance) {
-        super(400, 'Bad Request', detail, 'https://errors.ridematching.com/bad-request', instance);
+        super(400, 'Bad Request', detail, 'https://errors.urbanpulse.com/bad-request', instance);
     }
 }
 exports.BadRequestError = BadRequestError;
 class UnauthorizedError extends AppError {
     constructor(detail, instance) {
-        super(401, 'Unauthorized', detail, 'https://errors.ridematching.com/unauthorized', instance);
+        super(401, 'Unauthorized', detail, 'https://errors.urbanpulse.com/unauthorized', instance);
     }
 }
 exports.UnauthorizedError = UnauthorizedError;
 class ForbiddenError extends AppError {
     constructor(detail, instance) {
-        super(403, 'Forbidden', detail, 'https://errors.ridematching.com/forbidden', instance);
+        super(403, 'Forbidden', detail, 'https://errors.urbanpulse.com/forbidden', instance);
     }
 }
 exports.ForbiddenError = ForbiddenError;
 class NotFoundError extends AppError {
     constructor(detail, instance) {
-        super(404, 'Not Found', detail, 'https://errors.ridematching.com/not-found', instance);
+        super(404, 'Not Found', detail, 'https://errors.urbanpulse.com/not-found', instance);
     }
 }
 exports.NotFoundError = NotFoundError;
 class ConflictError extends AppError {
     constructor(detail, instance) {
-        super(409, 'Conflict', detail, 'https://errors.ridematching.com/conflict', instance);
+        super(409, 'Conflict', detail, 'https://errors.urbanpulse.com/conflict', instance);
     }
 }
 exports.ConflictError = ConflictError;
 class InternalServerError extends AppError {
     constructor(detail = 'An unexpected error occurred', instance) {
-        super(500, 'Internal Server Error', detail, 'https://errors.ridematching.com/internal-error', instance);
+        super(500, 'Internal Server Error', detail, 'https://errors.urbanpulse.com/internal-error', instance);
     }
 }
 exports.InternalServerError = InternalServerError;
 class TooManyRequestsError extends AppError {
     constructor(detail, instance) {
-        super(429, 'Too Many Requests', detail, 'https://errors.ridematching.com/too-many-requests', instance);
+        super(429, 'Too Many Requests', detail, 'https://errors.urbanpulse.com/too-many-requests', instance);
     }
 }
 exports.TooManyRequestsError = TooManyRequestsError;

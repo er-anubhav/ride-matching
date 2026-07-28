@@ -1,5 +1,5 @@
-name: ride_matching_workspace
-description: "Ride Matching workspace root"
+name: urban_pulse_workspace
+description: "UrbanPulse workspace root"
 version: 1.0.0
 publish_to: 'none'
 

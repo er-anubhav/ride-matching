@@ -1,4 +1,4 @@
-package com.ridematching.driver.driver_app
+package com.urbanpulse.rider_app
 
 import io.flutter.embedding.android.FlutterActivity
 

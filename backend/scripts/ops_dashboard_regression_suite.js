@@ -1,5 +1,5 @@
 /**
- * Ride Matching - Operations Dashboard & Matching Engine Automated Regression Suite
+ * UrbanPulse - Operations Dashboard & Matching Engine Automated Regression Suite
  * Self-Diagnosing & Version-Guarded Test Runner
  * 
  * Usage:
@@ -74,7 +74,7 @@ function classifyFailure(statusCode, context) {
   if (statusCode === 500) {
     return {
       diagnosis: `Internal Server Error (500). Unhandled exception or database/redis query error in endpoint.`,
-      action: `Inspect backend process logs:\n         -> docker logs -f ridematching-backend`
+      action: `Inspect backend process logs:\n         -> docker logs -f urbanpulse-backend`
     };
   }
   if (statusCode === 403 || statusCode === 401) {
@@ -131,8 +131,8 @@ async function runRegressionSuite() {
 
       console.log(`   Host Status:      ${v.status}`);
       console.log(`   Environment:      ${v.environment || 'production'}`);
-      console.log(`   Service Name:     ${v.service || 'ride-matching-backend'}`);
-      console.log(`   Container Image:  ${v.containerImage || 'ride-matching-backend:latest'}`);
+      console.log(`   Service Name:     ${v.service || 'urban-pulse-backend'}`);
+      console.log(`   Container Image:  ${v.containerImage || 'urban-pulse-backend:latest'}`);
       console.log(`   Running Version:  ${runningVersion}`);
       console.log(`   Expected Version: ${EXPECTED_VERSION}`);
       console.log(`   Git Commit SHA:   ${v.gitCommit || 'unknown'}`);

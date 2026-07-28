@@ -1,4 +1,4 @@
-name: ride_matching_workspace
+name: urban_pulse_workspace
 
 packages:
   - packages/*

@@ -36,7 +36,7 @@ class _TripSummaryScreenState extends ConsumerState<TripSummaryScreen> {
     const double platformFee = 5.0;
     final double grandTotal = totalPrice + platformFee;
 
-    final String vehicleLabel = booking.vehicleName ?? "Ride Matching Ride";
+    final String vehicleLabel = booking.vehicleName ?? "UrbanPulse Ride";
     final String destination = location.destinationAddress.isNotEmpty
         ? location.destinationAddress
         : "Destination";
@@ -83,7 +83,7 @@ class _TripSummaryScreenState extends ConsumerState<TripSummaryScreen> {
               ),
               Center(
                 child: Text(
-                  "Hope you had a comfortable ride with Ride Matching",
+                  "Hope you had a comfortable ride with UrbanPulse",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: AppColors.textSecondary,

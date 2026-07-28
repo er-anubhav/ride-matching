@@ -14,13 +14,13 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const RideMatchingRiderApp(),
+      child: const UrbanPulseRiderApp(),
     ),
   );
 }
 
-class RideMatchingRiderApp extends ConsumerWidget {
-  const RideMatchingRiderApp({super.key});
+class UrbanPulseRiderApp extends ConsumerWidget {
+  const UrbanPulseRiderApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,7 +38,7 @@ class RideMatchingRiderApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'Ride Matching',
+      title: 'UrbanPulse',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.lightTheme,

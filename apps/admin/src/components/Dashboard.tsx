@@ -241,7 +241,7 @@ export default function Dashboard() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `ride_matching_${section}_report_${Date.now()}.csv`);
+    link.setAttribute('download', `urban_pulse_${section}_report_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

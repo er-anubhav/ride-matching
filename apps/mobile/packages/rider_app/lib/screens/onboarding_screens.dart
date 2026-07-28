@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Official Ride Matching Logo
+              // Official UrbanPulse Logo
               Image.asset(
                 'assets/logo.jpeg',
                 width: 240,

@@ -27,7 +27,7 @@ class WalletScreen extends ConsumerWidget {
           onPressed: () => context.pop(),
         ),
         title: Text(
-          "Ride Matching Wallet",
+          "UrbanPulse Wallet",
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18,
             
@@ -314,7 +314,7 @@ class ProfileScreen extends ConsumerWidget {
               // Version Card
               Center(
                 child: Text(
-                  "Ride Matching v1.0.0",
+                  "UrbanPulse v1.0.0",
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     color: AppColors.textMuted,
@@ -830,7 +830,7 @@ class _WalletPaymentScreenState extends ConsumerState<WalletPaymentScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "RIDE MATCHING CARD",
+                        "URBANPULSE CARD",
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           letterSpacing: 1.5,

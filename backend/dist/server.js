@@ -66,7 +66,7 @@ async function createServer() {
             timeWindow: '1 minute',
             redis: redis_1.redisClient,
             errorResponseBuilder: (request, context) => {
-                return new errors_1.AppError(429, 'Too Many Requests', `Rate limit exceeded, retry in ${context.after} time units`, 'https://errors.ridematching.com/too-many-requests', request.url).toRFC7807(request.url);
+                return new errors_1.AppError(429, 'Too Many Requests', `Rate limit exceeded, retry in ${context.after} time units`, 'https://errors.urbanpulse.com/too-many-requests', request.url).toRFC7807(request.url);
             },
         });
     }
@@ -108,8 +108,8 @@ async function createServer() {
         return {
             status: 'healthy',
             environment: process.env.NODE_ENV || 'production',
-            service: 'ride-matching-backend',
-            containerImage: 'ride-matching-backend:1.1.0-ops-dashboard',
+            service: 'urban-pulse-backend',
+            containerImage: 'urban-pulse-backend:1.1.0-ops-dashboard',
             version: '1.1.0-ops-dashboard',
             apiVersion: 'v1',
             gitCommit: gitInfo.commit,

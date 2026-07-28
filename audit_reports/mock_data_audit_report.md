@@ -1,6 +1,6 @@
 # Deep Forensic Audit Report — Mock Data & Hardcoded Values
 
-**Project**: Ride Matching Mobility Platform (Rider App, Driver App, Backend, Admin Portal)  
+**Project**: UrbanPulse Mobility Platform (Rider App, Driver App, Backend, Admin Portal)  
 **Scope**: Codebase Forensic Inspection across all 14 Search Categories  
 **Auditors**: Senior Software Auditor, Principal Architect, QA Lead  
 **Date**: July 28, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A deep forensic source code audit was conducted across every file in the **Ride Matching Platform** (`rider_app`, `driver_app`, `backend`, `apps/admin`, `matching-engine`, `prisma`) to identify hardcoded user data, business logic fallbacks, static financial constants, mock APIs, local simulations, placeholder images, and debug flags.
+A deep forensic source code audit was conducted across every file in the **UrbanPulse Platform** (`rider_app`, `driver_app`, `backend`, `apps/admin`, `matching-engine`, `prisma`) to identify hardcoded user data, business logic fallbacks, static financial constants, mock APIs, local simulations, placeholder images, and debug flags.
 
 - **Mock-Data Cleanliness Score**: **98%**
 - **Production Classification**: **No Critical Mocks Remaining**
@@ -34,7 +34,7 @@ All critical hardcoded coordinates (Lucknow `26.8500, 80.9400`), mock vehicle nu
 | **6. Mock APIs** | `user_api.ts` | L8-13 | 🟢 Low | In-memory `savedPlacesStore` and `supportTicketsStore` maps | **RESOLVED** — Migrated to PostgreSQL Prisma models |
 | **7. Local Simulations** | `ui_state_providers.dart` | L839, L937 | 🟢 Low | Artificial 5s/8s driver movement simulation timers | **RESOLVED** — Purged; live updates use WebSocket events |
 | **7. Local Simulations** | `driver_state_providers.dart` | L525 | 🟢 Low | Driver GPS movement simulation timer | **RESOLVED** — Purged; uses live device GPS from `Geolocator` |
-| **8. Fake DB Records** | `schema.prisma` | L1-405 | 🟢 Low | Initial schema models | **RESOLVED** — Migration DDL [`migration.sql`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/prisma/migrations/20260728000000_init/migration.sql) generated |
+| **8. Fake DB Records** | `schema.prisma` | L1-405 | 🟢 Low | Initial schema models | **RESOLVED** — Migration DDL [`migration.sql`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/prisma/migrations/20260728000000_init/migration.sql) generated |
 | **9. TODO / FIXME** | `build.gradle.kts` | L23, L35 | 🟢 Low | Default Android package ID comment `// TODO: Specify Application ID` | **Production Safe** — Android gradle template comment |
 | **10. Environment Config** | `.env.local` | L1-4 | 🟢 Low | Local development admin credentials | **RESOLVED** — Updated with secure production keys |
 | **11. Default Fallbacks** | `ui_state_providers.dart` | L1340 | 🟢 Low | `currentLocationProvider` fallback `0.0, 0.0` when GPS disabled | **Production Safe** — Safe null-coalescing guard |
@@ -77,4 +77,4 @@ MOCK-DATA CLEANLINESS SCORE:     98%
 
 ## 5. Production Readiness Certification
 
-The **Ride Matching Platform** codebase is certified **98% mock-data clean**, free of critical hardcoded fallbacks, fully integrated with backend PostgreSQL persistence, and ready for production deployment.
+The **UrbanPulse Platform** codebase is certified **98% mock-data clean**, free of critical hardcoded fallbacks, fully integrated with backend PostgreSQL persistence, and ready for production deployment.

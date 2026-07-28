@@ -14,13 +14,13 @@ void main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const RideMatchingDriverApp(),
+      child: const UrbanPulseDriverApp(),
     ),
   );
 }
 
-class RideMatchingDriverApp extends ConsumerWidget {
-  const RideMatchingDriverApp({super.key});
+class UrbanPulseDriverApp extends ConsumerWidget {
+  const UrbanPulseDriverApp({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -35,7 +35,7 @@ class RideMatchingDriverApp extends ConsumerWidget {
     }
 
     return MaterialApp.router(
-      title: 'Ride Matching Driver',
+      title: 'UrbanPulse Driver',
       debugShowCheckedModeBanner: false,
       themeMode: themeMode,
       theme: AppTheme.lightTheme,

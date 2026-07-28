@@ -1,10 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/backend)",
+      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/urban-pulse/backend)",
       "Bash(npx tsc *)",
       "Bash(npm run *)",
-      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/apps/admin)",
+      "Bash(cd /home/anubhavtripathi/Documents/Projects/Freelance Project/urban-pulse/apps/admin)",
       "Bash(npm start *)"
     ]
   }

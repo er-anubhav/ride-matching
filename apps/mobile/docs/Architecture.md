@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Ride Matching mobile apps (`rider_app` and `driver_app`) follow a clean layered architecture leveraging Flutter Riverpod for state management, GoRouter for declarative navigation, and a shared core library for design tokens and API services.
+The UrbanPulse mobile apps (`rider_app` and `driver_app`) follow a clean layered architecture leveraging Flutter Riverpod for state management, GoRouter for declarative navigation, and a shared core library for design tokens and API services.
 
 ---
 

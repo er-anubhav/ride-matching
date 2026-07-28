@@ -1,6 +1,6 @@
-# Senior API Testing & REST API Audit Report — Ride Matching Platform
+# Senior API Testing & REST API Audit Report — UrbanPulse Platform
 
-**Project**: Ride Matching Mobility Backend (`backend`)  
+**Project**: UrbanPulse Mobility Backend (`backend`)  
 **Scope**: End-to-End REST API Inspection across all 20 Phases (Fastify, TypeScript, Prisma, PostgreSQL, Redis, Cloudflare R2)  
 **Auditors**: Principal API Architect, Senior Backend Engineer, SDET Lead, & Security Auditor  
 **Date**: July 28, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A comprehensive, line-by-line REST API testing and architecture audit was performed across all Fastify routes, middleware controllers, data repositories, and client SDK consumers in the **Ride Matching Platform**.
+A comprehensive, line-by-line REST API testing and architecture audit was performed across all Fastify routes, middleware controllers, data repositories, and client SDK consumers in the **UrbanPulse Platform**.
 
 - **Overall REST API Score**: **98 / 100**
 - **Contract Compatibility**: **100% (Rider App, Driver App, & Admin Portal)**
@@ -23,33 +23,33 @@ Every endpoint in the system — from initial phone OTP request to driver KYC up
 
 | Endpoint | Method | Module | Primary Consumer | Verified Status |
 |---|---|---|---|---|
-| `/auth/otp/request` | `POST` | `modules/auth` | Rider App / Driver App | **Verified** ([`auth/index.ts:40`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L40)) |
-| `/auth/otp/verify` | `POST` | `modules/auth` | Rider App / Driver App | **Verified** ([`auth/index.ts:75`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L75)) |
-| `/profile` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:19`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L19)) |
-| `/profile` | `PUT` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:45`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L45)) |
-| `/user/saved-places` | `GET` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:65`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L65)) |
-| `/user/saved-places` | `POST` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:85`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L85)) |
-| `/user/search-history` | `GET` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:122`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L122)) |
-| `/wallet` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:152`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L152)) |
-| `/wallet/transactions` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:175`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L175)) |
-| `/support/tickets` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:270`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L270)) |
-| `/support/tickets` | `POST` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:290`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L290)) |
-| `/promos/apply` | `POST` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:320`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L320)) |
-| `/trips/estimate` | `POST` | `modules/trip` | Rider App | **Verified** ([`trip/index.ts:30`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/trip/index.ts#L30)) |
-| `/trips/book` | `POST` | `modules/trip` | Rider App | **Verified** ([`trip/index.ts:50`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/trip/index.ts#L50)) |
-| `/trips/:id/accept` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:110`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/trip/index.ts#L110)) |
-| `/trips/:id/start` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:170`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/trip/index.ts#L170)) |
-| `/trips/:id/complete` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:210`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/trip/index.ts#L210)) |
-| `/driver/kyc/upload` | `POST` | `modules/kyc` | Driver App | **Verified** ([`kyc/index.ts:35`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/kyc/index.ts#L35)) |
-| `/api/admin/kyc/pending` | `GET` | `modules/kyc` | Admin Portal | **Verified** ([`kyc/index.ts:80`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/kyc/index.ts#L80)) |
-| `/api/admin/pricing` | `GET` | `modules/user_api` | Admin Portal | **Verified** ([`user_api.ts:352`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L352)) |
-| `/api/admin/pricing` | `PUT` | `modules/user_api` | Admin Portal | **Verified** ([`user_api.ts:385`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L385)) |
+| `/auth/otp/request` | `POST` | `modules/auth` | Rider App / Driver App | **Verified** ([`auth/index.ts:40`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L40)) |
+| `/auth/otp/verify` | `POST` | `modules/auth` | Rider App / Driver App | **Verified** ([`auth/index.ts:75`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L75)) |
+| `/profile` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:19`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L19)) |
+| `/profile` | `PUT` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:45`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L45)) |
+| `/user/saved-places` | `GET` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:65`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L65)) |
+| `/user/saved-places` | `POST` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:85`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L85)) |
+| `/user/search-history` | `GET` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:122`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L122)) |
+| `/wallet` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:152`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L152)) |
+| `/wallet/transactions` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:175`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L175)) |
+| `/support/tickets` | `GET` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:270`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L270)) |
+| `/support/tickets` | `POST` | `modules/user_api` | Rider App / Driver App | **Verified** ([`user_api.ts:290`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L290)) |
+| `/promos/apply` | `POST` | `modules/user_api` | Rider App | **Verified** ([`user_api.ts:320`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L320)) |
+| `/trips/estimate` | `POST` | `modules/trip` | Rider App | **Verified** ([`trip/index.ts:30`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/trip/index.ts#L30)) |
+| `/trips/book` | `POST` | `modules/trip` | Rider App | **Verified** ([`trip/index.ts:50`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/trip/index.ts#L50)) |
+| `/trips/:id/accept` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:110`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/trip/index.ts#L110)) |
+| `/trips/:id/start` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:170`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/trip/index.ts#L170)) |
+| `/trips/:id/complete` | `POST` | `modules/trip` | Driver App | **Verified** ([`trip/index.ts:210`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/trip/index.ts#L210)) |
+| `/driver/kyc/upload` | `POST` | `modules/kyc` | Driver App | **Verified** ([`kyc/index.ts:35`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/kyc/index.ts#L35)) |
+| `/api/admin/kyc/pending` | `GET` | `modules/kyc` | Admin Portal | **Verified** ([`kyc/index.ts:80`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/kyc/index.ts#L80)) |
+| `/api/admin/pricing` | `GET` | `modules/user_api` | Admin Portal | **Verified** ([`user_api.ts:352`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L352)) |
+| `/api/admin/pricing` | `PUT` | `modules/user_api` | Admin Portal | **Verified** ([`user_api.ts:385`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L385)) |
 
 ---
 
 ## Phase 4 & 5 — Authentication & Authorization Audit
 
-- **Authentication Guard**: All private routes use `verifyJwtMiddleware` ([`auth/index.ts:15`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L15)).
+- **Authentication Guard**: All private routes use `verifyJwtMiddleware` ([`auth/index.ts:15`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L15)).
 - **BOLA Protection**: `userId` extracted directly from verified JWT token payload (`request.user.id`), preventing object-level access parameter tampering.
 - **BFLA Protection**: Dedicated `/api/admin/*` routes validate `role === 'ADMIN'`.
 

@@ -1,6 +1,6 @@
-# Ride Matching Design System (Purple Edition)
+# UrbanPulse Design System (Purple Edition)
 
-This document outlines the visual tokens and design rules for the Ride Matching Rider Application, based on the official purple brand identity and a premium minimalist layout similar to Uber.
+This document outlines the visual tokens and design rules for the UrbanPulse Rider Application, based on the official purple brand identity and a premium minimalist layout similar to Uber.
 
 ## Theme Appearance
 * **Theme Mode:** Dark Mode

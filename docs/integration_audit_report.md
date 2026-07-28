@@ -1,4 +1,4 @@
-# Ride Matching Integration Audit Report
+# UrbanPulse Integration Audit Report
 
 This audit verifies end-to-end user journeys to determine if the Rider App, Driver App, Backend, and third-party services are fully integrated.
 

@@ -1,7 +1,7 @@
 {
-  "name": "ride-matching-backend",
+  "name": "urban-pulse-backend",
   "version": "1.0.0",
-  "description": "Modular Monolith Backend for Ride Matching",
+  "description": "Modular Monolith Backend for UrbanPulse",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",

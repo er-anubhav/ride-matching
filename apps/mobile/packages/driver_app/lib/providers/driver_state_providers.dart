@@ -519,7 +519,7 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
       final response = await http.post(
         Uri.parse(directionsUrl),
         headers: {
-          'X-Request-Id': 'ride-matching-driver-arrival-${DateTime.now().millisecondsSinceEpoch}',
+          'X-Request-Id': 'urban-pulse-driver-arrival-${DateTime.now().millisecondsSinceEpoch}',
         },
       ).timeout(const Duration(seconds: 4));
 
@@ -633,7 +633,7 @@ class DriverStateNotifier extends StateNotifier<DriverState> {
       final response = await http.post(
         Uri.parse(directionsUrl),
         headers: {
-          'X-Request-Id': 'ride-matching-driver-trip-${DateTime.now().millisecondsSinceEpoch}',
+          'X-Request-Id': 'urban-pulse-driver-trip-${DateTime.now().millisecondsSinceEpoch}',
         },
       ).timeout(const Duration(seconds: 4));
 

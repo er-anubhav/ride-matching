@@ -1,6 +1,6 @@
-# Senior System Integration Audit Report — Ride Matching Platform
+# Senior System Integration Audit Report — UrbanPulse Platform
 
-**Project**: Ride Matching Multi-App Mobility Platform  
+**Project**: UrbanPulse Multi-App Mobility Platform  
 **Scope**: Rider App (`rider_app`), Driver App (`driver_app`), Admin Portal (`apps/admin`), Backend Fastify API (`backend`), Go Matching Engine (`matching-engine`), PostgreSQL (Prisma), Redis, Cloudflare R2, & Ola Maps  
 **Auditors**: Principal Solutions Architect, Distributed Systems Architect, Senior Flutter Engineer, & SRE Lead  
 **Date**: July 28, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A comprehensive, line-by-line, evidence-based system integration audit was performed across all repositories, API controllers, WebSocket event handlers, mobile state providers, database models, and cloud infrastructure components of the **Ride Matching Platform**.
+A comprehensive, line-by-line, evidence-based system integration audit was performed across all repositories, API controllers, WebSocket event handlers, mobile state providers, database models, and cloud infrastructure components of the **UrbanPulse Platform**.
 
 - **Overall System Integration Completion**: **98%**
 - **Production Integration Readiness**: **Very High (98%)**
@@ -55,14 +55,14 @@ Every core mobility workflow — phone OTP authentication, OlaMaps reverse geoco
 ## Phase 2 — Authentication Flow Audit
 
 - **Rider OTP Authentication**:
-  - Request OTP: `POST /auth/otp/request` (`{"phone": phone}`) ([`onboarding_screens.dart:240`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/onboarding_screens.dart#L240)) $\rightarrow$ [`modules/auth/index.ts:40`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L40).
-  - Verify OTP & Receive JWT: `POST /auth/otp/verify` (`{"phone": phone, "code": otp, "role": "RIDER"}`) ([`onboarding_screens.dart:289`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/onboarding_screens.dart#L289)) $\rightarrow$ [`modules/auth/index.ts:75`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L75).
-  - Persistence: Token saved to `SharedPreferences` under key `jwt_token` ([`api_client.dart:28`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/shared/lib/api/api_client.dart#L28)).
+  - Request OTP: `POST /auth/otp/request` (`{"phone": phone}`) ([`onboarding_screens.dart:240`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/onboarding_screens.dart#L240)) $\rightarrow$ [`modules/auth/index.ts:40`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L40).
+  - Verify OTP & Receive JWT: `POST /auth/otp/verify` (`{"phone": phone, "code": otp, "role": "RIDER"}`) ([`onboarding_screens.dart:289`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/onboarding_screens.dart#L289)) $\rightarrow$ [`modules/auth/index.ts:75`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L75).
+  - Persistence: Token saved to `SharedPreferences` under key `jwt_token` ([`api_client.dart:28`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/shared/lib/api/api_client.dart#L28)).
 - **Driver OTP Authentication**:
-  - Same unified auth endpoint with role `"DRIVER"` ([`onboarding_screens.dart:280`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/driver_app/lib/screens/onboarding_screens.dart#L280)).
+  - Same unified auth endpoint with role `"DRIVER"` ([`onboarding_screens.dart:280`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/screens/onboarding_screens.dart#L280)).
 - **Admin JWT Authentication**:
-  - Admin login endpoint `POST /api/auth/login` with Bearer auth token saved in `localStorage` under `adminToken` ([`useAuth.ts:35`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/hooks/useAuth.ts#L35)).
-- **JWT Authorization Middleware**: `verifyJwtMiddleware` parses `Authorization: Bearer <token>` on all guarded routes ([`modules/auth/index.ts:15`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/auth/index.ts#L15)).
+  - Admin login endpoint `POST /api/auth/login` with Bearer auth token saved in `localStorage` under `adminToken` ([`useAuth.ts:35`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/admin/src/hooks/useAuth.ts#L35)).
+- **JWT Authorization Middleware**: `verifyJwtMiddleware` parses `Authorization: Bearer <token>` on all guarded routes ([`modules/auth/index.ts:15`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/auth/index.ts#L15)).
 
 ---
 
@@ -141,4 +141,4 @@ PRODUCTION INTEGRATION SCORE: 98%
 
 **Classification**: **Release Candidate (98%)**
 
-The **Ride Matching Mobility Platform** demonstrates exceptional end-to-end integration integrity across mobile apps, admin web portal, backend REST controllers, WebSocket streams, Go-engine matching, and PostgreSQL models.
+The **UrbanPulse Mobility Platform** demonstrates exceptional end-to-end integration integrity across mobile apps, admin web portal, backend REST controllers, WebSocket streams, Go-engine matching, and PostgreSQL models.

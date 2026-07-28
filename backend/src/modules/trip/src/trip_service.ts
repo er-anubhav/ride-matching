@@ -235,7 +235,7 @@ export class TripService {
     FcmService.sendPushNotification(
       trip.riderId,
       'Trip Completed',
-      'Your trip has ended. Thank you for riding with Ride Matching!',
+      'Your trip has ended. Thank you for riding with UrbanPulse!',
       { tripId }
     ).catch(e => logger.error(e));
 

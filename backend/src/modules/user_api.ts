@@ -22,7 +22,7 @@ export async function userApiRoutes(server: FastifyInstance) {
         status: 'success',
         name: dbUser?.name || user.name || 'Rider User',
         phone: dbUser?.phone || user.phone || '+91 98765 43210',
-        email: dbUser?.email || 'user@ridematching.com',
+        email: dbUser?.email || 'user@urbanpulse.com',
         rating: 4.9,
         avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
       });
@@ -50,7 +50,7 @@ export async function userApiRoutes(server: FastifyInstance) {
         status: 'success',
         name: name || updatedUser?.name || user.name || 'Rider User',
         phone: updatedUser?.phone || user.phone || '+91 98765 43210',
-        email: email || updatedUser?.email || 'user@ridematching.com',
+        email: email || updatedUser?.email || 'user@urbanpulse.com',
         rating: 4.9,
         avatarUrl: avatarUrl || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb',
       });
@@ -320,7 +320,7 @@ export async function userApiRoutes(server: FastifyInstance) {
     const { code } = (request.body as any) || {};
     const cleanCode = (code || '').toUpperCase().trim();
 
-    if (cleanCode === 'RIDEMATCH50' || cleanCode === 'WELCOME50' || cleanCode === 'FIRST50') {
+    if (cleanCode === 'URBANPULSE50' || cleanCode === 'WELCOME50' || cleanCode === 'FIRST50') {
       return reply.code(200).send({
         status: 'success',
         valid: true,

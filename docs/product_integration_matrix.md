@@ -1,6 +1,6 @@
-# Ride Matching Product Integration Matrix
+# UrbanPulse Product Integration Matrix
 
-This document outlines the strict end-to-end integration requirements to complete a single successful ride on the Ride Matching platform. It ignores purely architectural improvements in favor of connecting the existing mobile frontends to the existing backend endpoints.
+This document outlines the strict end-to-end integration requirements to complete a single successful ride on the UrbanPulse platform. It ignores purely architectural improvements in favor of connecting the existing mobile frontends to the existing backend endpoints.
 
 ---
 

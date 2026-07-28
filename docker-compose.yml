@@ -3,25 +3,25 @@ version: '3.8'
 services:
   postgres:
     image: postgres:15-alpine
-    container_name: ridematching-postgres
+    container_name: urbanpulse-postgres
     restart: always
     environment:
-      POSTGRES_USER: ridematching
+      POSTGRES_USER: urbanpulse
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-supersecret123}
-      POSTGRES_DB: ridematching
+      POSTGRES_DB: urbanpulse
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ridematching"]
+      test: ["CMD-SHELL", "pg_isready -U urbanpulse"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   redis:
     image: redis:7-alpine
-    container_name: ridematching-redis
+    container_name: urbanpulse-redis
     restart: always
     ports:
       - "6379:6379"
@@ -38,7 +38,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: ridematching-backend
+    container_name: urbanpulse-backend
     restart: always
     environment:
       - NODE_ENV=production
@@ -47,7 +47,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_URL=redis://redis:6379
-      - DATABASE_URL=postgresql://ridematching:${POSTGRES_PASSWORD:-supersecret123}@postgres:5432/ridematching?schema=public
+      - DATABASE_URL=postgresql://urbanpulse:${POSTGRES_PASSWORD:-supersecret123}@postgres:5432/urbanpulse?schema=public
       - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key_here}
       - FAST2SMS_API_KEY=${FAST2SMS_API_KEY}
       - CLOUDFLARE_R2_ACCOUNT_ID=${CLOUDFLARE_R2_ACCOUNT_ID}

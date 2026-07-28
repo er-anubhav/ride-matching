@@ -15,7 +15,7 @@
 1. Clone the repository:
    ```bash
    git clone <repo-url>
-   cd ride-matching/apps/mobile
+   cd urban-pulse/apps/mobile
    ```
 
 2. Bootstrap dependencies for all packages:

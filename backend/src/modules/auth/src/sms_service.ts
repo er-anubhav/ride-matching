@@ -23,7 +23,7 @@ export class SmsService {
         },
         body: JSON.stringify({
           route: 'q',
-          message: `Your Ride Matching verification code is: ${otp}`,
+          message: `Your UrbanPulse verification code is: ${otp}`,
           flash: 0,
           numbers: phone.replace('+', '') // Fast2SMS expects numbers without '+'
         })

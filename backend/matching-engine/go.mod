@@ -1,3 +1,3 @@
-module ride-matching/matching-engine
+module urban-pulse/matching-engine
 
 go 1.20

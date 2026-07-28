@@ -5,7 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/packages/driver_app/melos_driver_app.iml" filepath="$PROJECT_DIR$/packages/driver_app/melos_driver_app.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/rider_app/melos_rider_app.iml" filepath="$PROJECT_DIR$/packages/rider_app/melos_rider_app.iml" />
       <module fileurl="file://$PROJECT_DIR$/packages/shared/melos_shared.iml" filepath="$PROJECT_DIR$/packages/shared/melos_shared.iml" />
-      <module fileurl="file://$PROJECT_DIR$/melos_ride_matching_workspace.iml" filepath="$PROJECT_DIR$/melos_ride_matching_workspace.iml" />
+      <module fileurl="file://$PROJECT_DIR$/melos_urban_pulse_workspace.iml" filepath="$PROJECT_DIR$/melos_urban_pulse_workspace.iml" />
     </modules>
   </component>
 </project>

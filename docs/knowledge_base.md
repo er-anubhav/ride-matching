@@ -1,6 +1,6 @@
-# Ride Matching Engineering Knowledge Base
+# UrbanPulse Engineering Knowledge Base
 
-Welcome to the single source of truth for the Ride Matching backend architecture, infrastructure, and engineering decisions.
+Welcome to the single source of truth for the UrbanPulse backend architecture, infrastructure, and engineering decisions.
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ Welcome to the single source of truth for the Ride Matching backend architecture
 ---
 
 ## System Overview
-Ride Matching is a ride-hailing platform built using a Modular Monolith architecture.
+UrbanPulse is a ride-hailing platform built using a Modular Monolith architecture.
 - **Runtime:** Node.js (TypeScript) + Fastify
 - **Database:** PostgreSQL (Prisma ORM)
 - **Caching & State:** Redis
@@ -29,7 +29,7 @@ Ride Matching is a ride-hailing platform built using a Modular Monolith architec
 *(Documentation will be appended here continuously upon completion of features as per the 9-Phase process.)*
 
 ## Architecture Documentation
-- [Database Relational Integrity](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/docs/database_relations.md)
+- [Database Relational Integrity](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/urban-pulse/docs/database_relations.md)
 
 ## API Documentation
-- [Driver Trip Interaction API](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/ride-matching/docs/driver_trip_api.md)
+- [Driver Trip Interaction API](file:///home/anubhavtripathi/Documents/Projects/Freelance Project/urban-pulse/docs/driver_trip_api.md)

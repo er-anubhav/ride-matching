@@ -724,7 +724,7 @@ class _PremiumDarkMapWidgetState extends ConsumerState<PremiumDarkMapWidget> {
       return _PermissionOverlay(
         icon: LucideIcons.navigation,
         title: 'Allow Location Access',
-        message: 'Ride Matching needs your location to show the map and find nearby drivers.',
+        message: 'UrbanPulse needs your location to show the map and find nearby drivers.',
         buttonLabel: 'Grant Permission',
         onTap: _checkAndRequest,
       );

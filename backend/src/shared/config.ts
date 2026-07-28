@@ -7,7 +7,7 @@ const configSchema = z.object({
   PORT: z.preprocess((val) => Number(val ?? 8080), z.number().default(8080)),
   HOST: z.string().default('0.0.0.0'),
   DATABASE_URL: z.string().optional(),
-  JWT_SECRET: z.string().default('ride-matching-super-secret-key-12345'),
+  JWT_SECRET: z.string().default('urban-pulse-super-secret-key-12345'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   FAST2SMS_API_KEY: z.string().optional(),
   CLOUDFLARE_R2_ACCOUNT_ID: z.string().optional(),

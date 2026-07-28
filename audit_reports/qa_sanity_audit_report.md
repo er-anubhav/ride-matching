@@ -1,6 +1,6 @@
-# Senior QA Sanity Testing Audit Report — Ride Matching Platform
+# Senior QA Sanity Testing Audit Report — UrbanPulse Platform
 
-**Project**: Ride Matching Multi-App Mobility Platform  
+**Project**: UrbanPulse Multi-App Mobility Platform  
 **Scope**: Sanity Testing Inspection across all 13 Phases (Rider App, Driver App, Backend, Admin Panel, WebSocket Services)  
 **Auditors**: Principal QA Architect, Senior SDET Lead, & Release Validation Engineer  
 **Date**: July 28, 2026  
@@ -9,7 +9,7 @@
 
 ## 1. Executive Summary
 
-A comprehensive QA sanity test audit was performed on the latest build artifact of the **Ride Matching Platform** to validate recent feature implementations, bug fixes, database schema migrations, and frontend integration updates.
+A comprehensive QA sanity test audit was performed on the latest build artifact of the **UrbanPulse Platform** to validate recent feature implementations, bug fixes, database schema migrations, and frontend integration updates.
 
 - **Sanity Outcome**: **Passed Successfully (100% Clean)**
 - **Build Quality**: **0 Compile Errors across all 4 repositories**
@@ -33,14 +33,14 @@ All recently updated features — including dynamic city pricing for Delhi (`CIT
 ## Phase 2 to 5 — Component Sanity Findings
 
 - **Rider Mobile App**:
-  - `home_screen.dart`: Destination search, fare selection, and ride booking render smoothly without UI overflow ([`home_screen.dart:450-580`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/home_screen.dart#L450-L580)).
-  - `destination_picker_screen.dart`: Fallback coordinates updated to strict default (`0.0, 0.0`) ([`destination_picker_screen.dart:36-37`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/rider_app/lib/screens/destination_picker_screen.dart#L36-L37)).
+  - `home_screen.dart`: Destination search, fare selection, and ride booking render smoothly without UI overflow ([`home_screen.dart:450-580`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/home_screen.dart#L450-L580)).
+  - `destination_picker_screen.dart`: Fallback coordinates updated to strict default (`0.0, 0.0`) ([`destination_picker_screen.dart:36-37`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/rider_app/lib/screens/destination_picker_screen.dart#L36-L37)).
 - **Driver Mobile App**:
-  - `driver_state_providers.dart`: Duty Online toggle updates WebSocket room joining instantly ([`driver_state_providers.dart:180`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart#L180)).
+  - `driver_state_providers.dart`: Duty Online toggle updates WebSocket room joining instantly ([`driver_state_providers.dart:180`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/mobile/packages/driver_app/lib/providers/driver_state_providers.dart#L180)).
 - **Backend API (`backend`)**:
-  - `user_api.ts`: Dynamic pricing for Delhi (`CITY_DELHI`) returns active fare tiers (`BIKE`, `AUTO`, `CAB_ECONOMY`, `CAB_PREMIUM`) ([`user_api.ts:352-388`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/backend/src/modules/user_api.ts#L352-L388)).
+  - `user_api.ts`: Dynamic pricing for Delhi (`CITY_DELHI`) returns active fare tiers (`BIKE`, `AUTO`, `CAB_ECONOMY`, `CAB_PREMIUM`) ([`user_api.ts:352-388`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/backend/src/modules/user_api.ts#L352-L388)).
 - **Admin Portal (`apps/admin`)**:
-  - `Dashboard.tsx`: CSV Exporter generates valid CSV files for KYC applications, payments, and trip reports ([`Dashboard.tsx:220-245`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/ride-matching/apps/admin/src/components/Dashboard.tsx#L220-L245)).
+  - `Dashboard.tsx`: CSV Exporter generates valid CSV files for KYC applications, payments, and trip reports ([`Dashboard.tsx:220-245`](file:///home/anubhavtripathi/Documents/Projects/Freelance%20Project/urban-pulse/apps/admin/src/components/Dashboard.tsx#L220-L245)).
 
 ---
 

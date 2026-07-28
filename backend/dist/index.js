@@ -6,7 +6,7 @@ const logger_1 = require("./shared/logger");
 const workers_1 = require("./workers");
 async function bootstrap() {
     try {
-        logger_1.logger.info('Starting Ride Matching Backend Modular Monolith...');
+        logger_1.logger.info('Starting UrbanPulse Backend Modular Monolith...');
         (0, workers_1.initializeWorkers)();
         const server = await (0, server_1.createServer)();
         const address = await server.listen({
@@ -17,7 +17,7 @@ async function bootstrap() {
         logger_1.logger.info(`WebSocket endpoint active at: ws://${config_1.config.HOST}:${config_1.config.PORT}/ride-tracking`);
     }
     catch (err) {
-        logger_1.logger.fatal(err, 'Failed to bootstrap Ride Matching Backend server');
+        logger_1.logger.fatal(err, 'Failed to bootstrap UrbanPulse Backend server');
         process.exit(1);
     }
 }
